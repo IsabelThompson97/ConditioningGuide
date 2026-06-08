@@ -1,0 +1,2500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Conditioning Guide</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#5e8a8e" />
+
+<!-- iOS "Add to Home Screen" support -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Conditioning" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='38' fill='%235e8a8e'/><path d='M90 50c-22 0-40 18-40 40s18 40 40 40 40-18 40-40-18-40-40-40zm0 12a28 28 0 110 56 28 28 0 010-56zm-6 18v18h18v6h-24v-24z' fill='white'/></svg>" />
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%235e8a8e'/><circle cx='16' cy='16' r='7' fill='none' stroke='white' stroke-width='2'/><path d='M16 12v5h4' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/></svg>" />
+
+<!-- Charts: CDN with graceful fallback (charts vanish, app still works) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js"
+        onerror="window.__chartCdnFailed=true"></script>
+<style>
+/* =============================================================
+   Conditioning Guide — calm health companion
+   Mobile-first. Bottom-tab nav. Big tap targets for poolside use.
+   Palette: warm paper, soft slate ink, muted spa-teal accent.
+   No reds, no fire emojis. Reminders are amber and gentle.
+   ============================================================= */
+:root {
+  /* Surface — warm low-saturation paper */
+  --bg: #f6f3ec;
+  --panel: #fbfaf6;
+  --panel-2: #efece2;
+  --panel-3: #e6e1d3;
+  --ink: #2c3138;
+  --ink-2: #5a6068;
+  --muted: #8a8f96;
+  --line: #e6e1d3;
+  --line-2: #cfc8b6;
+
+  /* One muted teal accent */
+  --accent: #5e8a8e;
+  --accent-soft: #e6efef;
+  --accent-deep: #3d6669;
+
+  /* Day-strip + status — distinct hues, all low chroma */
+  --c-programmed: #5e8a8e;    /* spa teal — did the plan */
+  --c-light:      #b9c8b3;    /* sage — vitals/ADL only */
+  --c-rest:       #d2b48a;    /* sand — planned rest, kept */
+  --c-empty:      #e2dccb;    /* paper — nothing logged */
+
+  /* Gentle signal colors — never red */
+  --signal: #c9883a;          /* amber for plan check-in reminders */
+  --signal-bg: #faf2e6;
+  --signal-ink: #7e5a2c;
+  --success: #6a8a5e;
+
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-lg: 22px;
+  --shadow: 0 1px 2px rgba(44,49,56,.05), 0 6px 20px rgba(44,49,56,.06);
+  --shadow-pop: 0 2px 6px rgba(44,49,56,.08), 0 16px 40px rgba(44,49,56,.10);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino", "Georgia", serif;
+
+  --fs: 15px;
+  --fs-sm: 13px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-display: 28px;
+
+  --tap: 48px;  /* min tap target */
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Themes */
+body.theme-soft {
+  --bg: #f5f5f7;
+  --panel: #ffffff;
+  --panel-2: #eeeef2;
+  --panel-3: #e2e2e8;
+  --ink: #1f2330;
+  --ink-2: #4a4f5d;
+  --muted: #7a808c;
+  --line: #e6e6ec;
+  --line-2: #d0d0d8;
+  --accent: #4e7d8e;
+  --accent-soft: #e6eef2;
+}
+body.theme-contrast {
+  --bg: #ffffff;
+  --panel: #ffffff;
+  --panel-2: #f2f2f2;
+  --panel-3: #e0e0e0;
+  --ink: #111111;
+  --ink-2: #333333;
+  --muted: #555555;
+  --line: #cccccc;
+  --line-2: #999999;
+  --accent: #1f5a63;
+  --accent-soft: #d0e0e3;
+}
+body.theme-dark {
+  --bg: #1d1f23;
+  --panel: #25282d;
+  --panel-2: #2f3338;
+  --panel-3: #3a3e44;
+  --ink: #ece8df;
+  --ink-2: #b5b1a8;
+  --muted: #8a867e;
+  --line: #3a3e44;
+  --line-2: #4d5158;
+  --accent: #88b3b8;
+  --accent-soft: #2f3a3b;
+  --accent-deep: #b0d0d4;
+  --c-programmed: #88b3b8;
+  --c-light: #9bb29a;
+  --c-rest: #c4a276;
+  --c-empty: #3a3e44;
+  --signal-bg: #3a3329;
+  --signal-ink: #e8c997;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+  --shadow-pop: 0 2px 6px rgba(0,0,0,.35), 0 16px 40px rgba(0,0,0,.4);
+}
+
+body.text-large { --fs: 17px; --fs-sm: 15px; --fs-lg: 20px; --fs-xl: 24px; --fs-display: 30px; }
+body.text-xlarge { --fs: 19px; --fs-sm: 16px; --fs-lg: 22px; --fs-xl: 27px; --fs-display: 34px; }
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--fs);
+  color: var(--ink); background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- App shell ---------- */
+#app-shell {
+  display: flex; flex-direction: column;
+  min-height: 100dvh;
+  max-width: 720px;
+  margin: 0 auto;
+  position: relative;
+}
+
+#top-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px 10px;
+  position: sticky; top: 0; z-index: 30;
+  background: var(--bg);
+  border-bottom: 1px solid transparent;
+}
+#top-bar.scrolled { border-bottom-color: var(--line); }
+#top-bar h1 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  flex: 1;
+  color: var(--ink);
+}
+#top-bar .icon-btn {
+  background: transparent; border: none; cursor: pointer;
+  padding: 8px; margin: -8px;
+  color: var(--ink-2);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  min-width: var(--tap); min-height: var(--tap);
+}
+#top-bar .icon-btn:hover { color: var(--ink); background: var(--panel-2); }
+#sync-dot {
+  display: inline-block;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--muted);
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+#sync-dot.synced { background: var(--success); }
+#sync-dot.syncing { background: var(--signal); animation: pulse 1.2s ease-in-out infinite; }
+#sync-dot.offline { background: var(--muted); }
+#sync-dot.error { background: var(--signal); }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+#sync-status {
+  font-size: var(--fs-sm); color: var(--muted);
+  display: flex; align-items: center; gap: 0;
+}
+
+/* ---------- Main views ---------- */
+main {
+  flex: 1;
+  padding: 8px 16px calc(80px + var(--safe-bottom));
+  overflow-x: hidden;
+}
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.18s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+h2.view-title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-display);
+  font-weight: 500;
+  margin: 10px 0 18px;
+  letter-spacing: -0.01em;
+}
+h3 {
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  font-weight: 500;
+  margin: 28px 0 12px;
+  letter-spacing: -0.01em;
+}
+h4 {
+  font-size: var(--fs);
+  font-weight: 600;
+  margin: 18px 0 8px;
+  color: var(--ink);
+}
+p { margin: 0 0 12px; color: var(--ink-2); }
+small, .small { font-size: var(--fs-sm); color: var(--muted); }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.card.soft { background: var(--panel-2); box-shadow: none; }
+.card-title {
+  font-size: var(--fs-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 8px;
+  font-weight: 500;
+}
+
+/* ---------- Buttons ---------- */
+button, .btn {
+  font-family: inherit; font-size: var(--fs); cursor: pointer;
+  border: 1px solid var(--line-2);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  min-height: var(--tap);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background 0.12s, border-color 0.12s, transform 0.05s;
+}
+button:active, .btn:active { transform: scale(0.98); }
+button:hover, .btn:hover { background: var(--panel-2); }
+button.primary, .btn.primary {
+  background: var(--accent); color: white; border-color: var(--accent);
+  font-weight: 500;
+}
+button.primary:hover { background: var(--accent-deep); }
+button.ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
+button.ghost:hover { color: var(--ink); background: var(--panel-2); }
+button.danger {
+  color: var(--signal-ink); border-color: var(--signal);
+  background: var(--signal-bg);
+}
+button.big {
+  font-size: var(--fs-lg);
+  padding: 18px 16px;
+  min-height: 64px;
+  border-radius: var(--radius);
+  font-weight: 500;
+}
+
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-row.right { justify-content: flex-end; }
+.btn-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ---------- Bottom tab nav ---------- */
+#bottom-tabs {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding-bottom: var(--safe-bottom);
+  z-index: 40;
+  max-width: 720px;
+  margin: 0 auto;
+}
+#bottom-tabs button {
+  border: none; background: transparent;
+  padding: 8px 4px 6px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  min-height: var(--tap);
+  border-radius: 0;
+  transition: color 0.12s;
+}
+#bottom-tabs button svg { width: 22px; height: 22px; }
+#bottom-tabs button.active { color: var(--accent); }
+#bottom-tabs button.safety { color: var(--ink-2); }
+#bottom-tabs button.active.safety { color: var(--signal); }
+
+/* ---------- Day strip ---------- */
+.day-strip {
+  display: flex; gap: 6px;
+  overflow-x: auto;
+  padding: 6px 0 14px;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+.day-strip::-webkit-scrollbar { display: none; }
+.day-chip {
+  flex: 0 0 44px;
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: 6px 4px;
+  border-radius: 10px;
+  cursor: pointer;
+  scroll-snap-align: end;
+  background: transparent;
+  border: 1px solid transparent;
+  font-family: inherit;
+  color: var(--ink-2);
+}
+.day-chip:active { transform: scale(0.95); }
+.day-chip.today { border-color: var(--accent); }
+.day-chip .dow { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.day-chip .num { font-weight: 600; font-size: var(--fs); margin: 2px 0; }
+.day-chip .dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--c-empty);
+  border: 1px solid transparent;
+}
+.day-chip[data-state="programmed"] .dot { background: var(--c-programmed); }
+.day-chip[data-state="light"] .dot { background: var(--c-light); }
+.day-chip[data-state="rest"] .dot { background: var(--c-rest); }
+.day-chip[data-state="empty"] .dot { background: transparent; border-color: var(--line-2); }
+
+.legend {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  margin-top: 4px;
+}
+.legend .swatch {
+  display: inline-block; width: 9px; height: 9px;
+  border-radius: 50%; margin-right: 5px; vertical-align: middle;
+}
+
+/* ---------- Streak card ---------- */
+.streak-card {
+  background: linear-gradient(135deg, var(--accent-soft), var(--panel));
+  border-color: var(--accent-soft);
+}
+.streak-card .number {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  font-weight: 500;
+  color: var(--accent-deep);
+  line-height: 1;
+}
+.streak-card .label {
+  font-size: var(--fs-sm); color: var(--ink-2);
+  margin-top: 4px;
+}
+
+/* ---------- Form inputs ---------- */
+label.field {
+  display: block;
+  margin-bottom: 14px;
+}
+label.field > .lbl {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--ink-2);
+}
+label.field > .help {
+  display: block;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  margin-top: 4px;
+}
+input[type="text"], input[type="number"], input[type="date"],
+input[type="datetime-local"], input[type="time"], input[type="url"],
+select, textarea {
+  font: inherit;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--ink);
+  min-height: var(--tap);
+}
+textarea { min-height: 80px; resize: vertical; }
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Toggle pill switch */
+.toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  cursor: pointer;
+  min-height: var(--tap);
+}
+.toggle .lbl { flex: 1; }
+.toggle .switch {
+  position: relative;
+  width: 44px; height: 26px;
+  background: var(--panel-3);
+  border-radius: 13px;
+  transition: background 0.18s;
+  flex-shrink: 0;
+}
+.toggle .switch::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  transition: left 0.18s;
+}
+.toggle input { display: none; }
+.toggle input:checked ~ .switch { background: var(--accent); }
+.toggle input:checked ~ .switch::after { left: 21px; }
+
+/* Chip selector (single + multi) */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 8px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--ink-2);
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  min-height: 38px;
+  display: inline-flex; align-items: center;
+  user-select: none;
+}
+.chip:active { transform: scale(0.96); }
+.chip.selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-deep);
+  font-weight: 500;
+}
+
+/* Borg picker */
+.borg-grid {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 6px;
+  align-items: stretch;
+}
+.borg-row {
+  display: contents;
+  cursor: pointer;
+}
+.borg-row .num {
+  display: flex; align-items: center; justify-content: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  font-weight: 600;
+  font-size: var(--fs-lg);
+  background: var(--panel);
+}
+.borg-row .desc {
+  display: flex; align-items: center;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-left: none;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--panel);
+  color: var(--ink-2);
+}
+.borg-row.selected .num,
+.borg-row.selected .desc {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-deep);
+}
+.borg-row.too-hard .num { color: var(--signal); background: var(--signal-bg); }
+.borg-row.too-hard .desc { color: var(--signal-ink); background: var(--signal-bg); }
+
+/* Feeling 1-5 (faces) */
+.feeling-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+.feeling-btn {
+  border: 1px solid var(--line-2);
+  background: var(--panel);
+  border-radius: var(--radius-sm);
+  padding: 14px 4px 8px;
+  cursor: pointer;
+  font-size: 22px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  min-height: 64px;
+}
+.feeling-btn .lbl { font-size: 10px; color: var(--muted); }
+.feeling-btn.selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* ---------- Modals ---------- */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(20, 22, 26, 0.45);
+  z-index: 100;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-backdrop.open { display: flex; animation: fadeIn 0.2s ease-out; }
+.modal {
+  background: var(--bg);
+  width: 100%;
+  max-width: 720px;
+  max-height: 92dvh;
+  border-radius: 20px 20px 0 0;
+  display: flex; flex-direction: column;
+  box-shadow: var(--shadow-pop);
+  animation: slideUp 0.22s ease-out;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: 20px 20px 0 0;
+  position: sticky; top: 0;
+}
+.modal-head h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  font-weight: 500;
+}
+.modal-body {
+  overflow-y: auto;
+  padding: 18px;
+  flex: 1;
+}
+.modal-foot {
+  border-top: 1px solid var(--line);
+  padding: 12px 18px calc(12px + var(--safe-bottom));
+  display: flex; gap: 10px; justify-content: flex-end;
+  background: var(--bg);
+}
+
+/* Full-screen modal variant (first-run, day detail) */
+.modal.full {
+  height: 100dvh; max-height: 100dvh;
+  border-radius: 0;
+}
+.modal.full .modal-head { border-radius: 0; }
+
+/* ---------- Suggested session card ---------- */
+.session-shape {
+  list-style: none;
+  padding: 0; margin: 8px 0 0;
+}
+.session-shape li {
+  padding: 8px 0 8px 26px;
+  position: relative;
+  color: var(--ink-2);
+  font-size: var(--fs);
+  border-bottom: 1px dashed var(--line);
+}
+.session-shape li:last-child { border-bottom: none; }
+.session-shape li::before {
+  content: '';
+  position: absolute;
+  left: 8px; top: 16px;
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+/* ---------- Log list (chronological) ---------- */
+.day-group {
+  margin-bottom: 22px;
+}
+.day-group-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+.day-group-head .heading {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.entry-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+.entry-row:hover { background: var(--panel-2); }
+.entry-icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.entry-icon svg { width: 18px; height: 18px; }
+.entry-body { flex: 1; min-width: 0; }
+.entry-title {
+  font-weight: 500;
+  font-size: var(--fs);
+  color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.entry-meta {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.entry-time {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Symptom + reminder banners (gentle, amber, never red) */
+.banner {
+  background: var(--signal-bg);
+  color: var(--signal-ink);
+  border-left: 3px solid var(--signal);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  margin: 12px 0;
+  font-size: var(--fs-sm);
+}
+.banner strong { font-weight: 600; }
+
+/* ---------- Stage chart (Guide view) ---------- */
+.stage-table {
+  display: grid;
+  gap: 12px;
+}
+.stage-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.stage-card.current { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.stage-card h4 { margin: 0 0 4px; font-size: var(--fs-lg); }
+.stage-card .meta {
+  font-size: var(--fs-sm); color: var(--muted);
+  margin-bottom: 8px;
+}
+.stage-card ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-2); }
+.stage-card .section-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin-top: 10px;
+}
+
+/* ---------- Safety view ---------- */
+.safety-block {
+  background: var(--panel);
+  border-left: 4px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.safety-block.urgent { border-left-color: var(--signal); }
+.safety-block h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-sans);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+.safety-block.urgent h3 { color: var(--signal-ink); }
+.safety-block ul { margin: 6px 0; padding-left: 22px; color: var(--ink-2); }
+.safety-block li { margin-bottom: 4px; }
+.safety-block p { margin: 0 0 6px; color: var(--ink-2); }
+
+/* ---------- Charts ---------- */
+.chart-card { padding: 14px 14px 8px; }
+.chart-card h4 { margin: 0 0 6px; }
+.chart-card .subtitle { font-size: var(--fs-sm); color: var(--muted); margin-bottom: 10px; }
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 220px;
+}
+.chart-empty {
+  height: 220px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  font-style: italic;
+}
+
+.range-chips { display: flex; gap: 6px; margin-bottom: 14px; }
+.range-chips .chip { padding: 6px 12px; min-height: 32px; font-size: var(--fs-sm); }
+
+/* ---------- Weekly snapshot table ---------- */
+.snap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+.snap-table th, .snap-table td {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.snap-table th {
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+.snap-table td.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- Print-friendly view ---------- */
+@media print {
+  #top-bar, #bottom-tabs, .no-print, .modal-foot { display: none !important; }
+  body { background: white; color: black; }
+  .card { box-shadow: none; border-color: #ccc; page-break-inside: avoid; }
+  .view { display: block !important; }
+  main { padding: 0; }
+  .chart-wrap { height: 180px; }
+}
+
+/* ---------- Misc ---------- */
+.spacer-lg { height: 32px; }
+.hr { border-top: 1px solid var(--line); margin: 24px 0; }
+.muted { color: var(--muted); }
+.italic { font-style: italic; }
+.kv { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; }
+.kv .k { color: var(--muted); }
+.kv .v { color: var(--ink); font-weight: 500; }
+
+a { color: var(--accent-deep); }
+
+.first-run-step {
+  padding: 30px 4px;
+  display: flex; flex-direction: column;
+  gap: 18px;
+}
+.first-run-step h2 {
+  font-family: var(--font-serif);
+  font-size: var(--fs-display);
+  margin: 0;
+  font-weight: 500;
+}
+.welcome-block {
+  background: var(--accent-soft);
+  border-radius: var(--radius);
+  padding: 18px;
+  color: var(--accent-deep);
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<div id="app-shell">
+
+  <!-- ─── Top bar ─────────────────────────────────────────────────── -->
+  <header id="top-bar">
+    <h1 id="top-title">Today</h1>
+    <div id="sync-status" title="Sync status">
+      <span id="sync-dot"></span>
+      <span id="sync-text"></span>
+    </div>
+    <button class="icon-btn" id="open-settings" aria-label="Settings" title="Settings">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </header>
+
+  <!-- ─── Main views ──────────────────────────────────────────────── -->
+  <main>
+    <section id="view-today" class="view active"></section>
+    <section id="view-log"     class="view"></section>
+    <section id="view-trends"  class="view"></section>
+    <section id="view-guide"   class="view"></section>
+    <section id="view-safety"  class="view"></section>
+    <section id="view-settings" class="view"></section>
+    <section id="view-print"   class="view"></section>
+  </main>
+
+  <!-- ─── Bottom tab nav ──────────────────────────────────────────── -->
+  <nav id="bottom-tabs">
+    <button data-view="today" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+      Today
+    </button>
+    <button data-view="log">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/></svg>
+      Log
+    </button>
+    <button data-view="trends">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg>
+      Trends
+    </button>
+    <button data-view="guide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12"/><path d="M4 4v16h12a4 4 0 0 0 4-4"/></svg>
+      Guide
+    </button>
+    <button data-view="safety" class="safety">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L4 6v6c0 5 3.5 9.4 8 10 4.5-.6 8-5 8-10V6z"/></svg>
+      Safety
+    </button>
+  </nav>
+
+  <!-- ─── Modal mount point ───────────────────────────────────────── -->
+  <div id="modal-mount"></div>
+
+</div>
+
+<script>
+/* ─── 4. Date + derived-data helpers ────────────────────────────── */
+
+const DOW_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DOW_FULL  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function todayISO() {
+  const d = new Date();
+  const tz = d.getTimezoneOffset() * 60000;
+  return new Date(d - tz).toISOString().slice(0, 10);
+}
+function isoFromDate(d) {
+  const tz = d.getTimezoneOffset() * 60000;
+  return new Date(d - tz).toISOString().slice(0, 10);
+}
+function dateFromIso(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function addDays(iso, n) {
+  const d = dateFromIso(iso);
+  d.setDate(d.getDate() + n);
+  return isoFromDate(d);
+}
+function dayOfWeek(iso) {
+  return dateFromIso(iso).getDay();
+}
+function mondayOf(iso) {
+  const d = dateFromIso(iso);
+  const dow = d.getDay();
+  const shift = dow === 0 ? -6 : 1 - dow; // shift to Monday
+  d.setDate(d.getDate() + shift);
+  return isoFromDate(d);
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = dateFromIso(iso);
+  const today = todayISO();
+  if (iso === today) return 'Today';
+  if (iso === addDays(today, -1)) return 'Yesterday';
+  const opts = { month: 'short', day: 'numeric' };
+  if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+  return d.toLocaleDateString(undefined, opts);
+}
+function fmtTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+function fmtDayHeading(iso) {
+  if (iso === todayISO()) return 'Today';
+  if (iso === addDays(todayISO(), -1)) return 'Yesterday';
+  const d = dateFromIso(iso);
+  return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+}
+function safeNum(v, fallback) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : (fallback === undefined ? null : fallback);
+}
+function asBool(v) {
+  return v === true || v === 'true' || v === 1 || v === '1';
+}
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/** All entries on a given date, across types. EKG/BS use dateTime
+ *  (ISO), so we match by date prefix. */
+function entriesOnDay(iso) {
+  return {
+    vitals: state.vitals.filter(v => v.date === iso),
+    activity: state.activity.filter(a => a.date === iso),
+    ekg: state.ekg.filter(e => (e.dateTime || '').slice(0, 10) === iso),
+    bloodSugar: state.bloodSugar.filter(b => (b.dateTime || '').slice(0, 10) === iso)
+  };
+}
+
+/** Day-strip state: programmed | light | rest | empty
+ *  A planned rest day always counts as "kept up." */
+function dayState(iso) {
+  if ((state.config.restDays || []).includes(iso)) return 'rest';
+  const e = entriesOnDay(iso);
+  const hasProgrammed = e.activity.some(a => asBool(a.isProgrammed));
+  if (hasProgrammed) return 'programmed';
+  const anyEntry = e.activity.length > 0 || e.vitals.length > 0
+    || e.ekg.length > 0 || e.bloodSugar.length > 0;
+  if (anyEntry) return 'light';
+  return 'empty';
+}
+
+/** Streak = consecutive days back from today where state ≠ empty. */
+function computeStreak() {
+  let streak = 0;
+  let cursor = todayISO();
+  // Today only contributes if she's already done something today;
+  // if not, peek back from yesterday so she isn't told streak=0 at 8am.
+  if (dayState(cursor) === 'empty') cursor = addDays(cursor, -1);
+  for (let i = 0; i < 365; i++) {
+    if (dayState(cursor) === 'empty') break;
+    streak++;
+    cursor = addDays(cursor, -1);
+  }
+  return streak;
+}
+
+/** Programmed-only metrics for a day */
+function dayProgrammedMinutes(iso) {
+  return entriesOnDay(iso).activity
+    .filter(a => asBool(a.isProgrammed))
+    .reduce((s, a) => s + (safeNum(a.totalMinutes, 0) || 0), 0);
+}
+function dayLongestContinuous(iso) {
+  const rounds = entriesOnDay(iso).activity
+    .filter(a => asBool(a.isProgrammed))
+    .map(a => safeNum(a.minutesPerRound, 0) || 0);
+  return rounds.length ? Math.max(...rounds) : 0;
+}
+
+/** Weekly snapshot (week starts Monday) */
+function weekSnapshot(weekStartIso) {
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStartIso, i));
+  let daysActive = 0;
+  let longestContinuous = 0;
+  const borgs = [];
+  const hrs = [];
+  let anySymptoms = false;
+  let totalProgrammed = 0;
+  days.forEach(d => {
+    const e = entriesOnDay(d);
+    const programmed = e.activity.filter(a => asBool(a.isProgrammed));
+    if (programmed.length > 0 || dayState(d) === 'rest') daysActive++;
+    programmed.forEach(a => {
+      const lc = safeNum(a.minutesPerRound, 0) || 0;
+      if (lc > longestContinuous) longestContinuous = lc;
+      totalProgrammed += safeNum(a.totalMinutes, 0) || 0;
+      const b = safeNum(a.borg);
+      if (b !== null) borgs.push(b);
+      if (asBool(a.dizzyDuring) || asBool(a.swellingDuring) || asBool(a.breathingDuring)) anySymptoms = true;
+    });
+    e.vitals.forEach(v => {
+      const hr = safeNum(v.restingHR);
+      if (hr !== null) hrs.push(hr);
+      if (asBool(v.dizzy) || asBool(v.swelling) || asBool(v.breathing)) anySymptoms = true;
+    });
+  });
+  const typicalBorg = borgs.length
+    ? Math.round((borgs.reduce((s, b) => s + b, 0) / borgs.length) * 10) / 10
+    : null;
+  return {
+    weekStart: weekStartIso,
+    daysActive,
+    longestContinuous,
+    totalProgrammed,
+    typicalBorg,
+    hrRange: hrs.length ? [Math.min(...hrs), Math.max(...hrs)] : null,
+    anySymptoms
+  };
+}
+
+/** Suggested session shape for today, based on stage + day-of-week plan */
+function todaysSuggestion() {
+  const stage = STAGES[state.config.currentStage] || STAGES[0];
+  const dow = DOW_SHORT[dayOfWeek(todayISO())];
+  const planText = state.config.weeklyPlan[dow] || '';
+  return { stage, planText, dow };
+}
+
+/** Plan-derived gentle reminders. Each returns {level:'reminder', msg}
+ *  or null. Never alarms. */
+function checkPlanReminders() {
+  const reminders = [];
+  const today = todayISO();
+  // Weight-gain check (only if user has enabled weight tracking AND set a baseline)
+  if (state.config.weightTrackingEnabled && state.config.weightBaselineLb) {
+    const weights = state.vitals
+      .filter(v => v.weight !== null && v.weight !== undefined && v.weight !== '')
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    if (weights.length) {
+      const last = weights[weights.length - 1];
+      const lastW = safeNum(last.weight);
+      if (lastW !== null) {
+        // Day-over-day jump
+        const prior = weights[weights.length - 2];
+        if (prior && safeNum(prior.weight) !== null) {
+          const diff = lastW - safeNum(prior.weight);
+          if (diff >= PLAN_THRESHOLDS.weightGainPerDayLb) {
+            reminders.push({
+              msg: `Morning weight is ${diff.toFixed(1)} lb up from yesterday. The plan lists ~2–3 lb in a day as a check-in sign — consider contacting her doctor.`
+            });
+          }
+        }
+        // Week-over-week vs baseline
+        const weekAgoCut = addDays(today, -7);
+        const old = weights.find(w => w.date >= weekAgoCut);
+        if (old && safeNum(old.weight) !== null) {
+          const diff = lastW - safeNum(old.weight);
+          if (diff >= PLAN_THRESHOLDS.weightGainPerWeekLb) {
+            reminders.push({
+              msg: `Morning weight is ${diff.toFixed(1)} lb up over about a week. The plan lists ~5 lb in a week as a check-in sign — consider contacting her doctor.`
+            });
+          }
+        }
+      }
+    }
+  }
+  // Doctor-range reminders (only if she's entered the range)
+  const r = state.config.doctorRanges || {};
+  const lastVitals = state.vitals.slice().sort((a,b) => (b.date||'').localeCompare(a.date||''))[0];
+  if (lastVitals && (r.hrFloor || r.hrCeiling)) {
+    const hr = safeNum(lastVitals.restingHR);
+    if (hr !== null) {
+      if (r.hrFloor && hr < r.hrFloor) {
+        reminders.push({ msg: `Resting HR (${hr}) is below the floor you entered (${r.hrFloor}).` });
+      }
+      if (r.hrCeiling && hr > r.hrCeiling) {
+        reminders.push({ msg: `Resting HR (${hr}) is above the ceiling you entered (${r.hrCeiling}).` });
+      }
+    }
+  }
+  return reminders;
+}
+
+/* ─── 5a. Today view ────────────────────────────────────────────── */
+
+function renderToday() {
+  const root = document.getElementById('view-today');
+  const today = todayISO();
+  const { stage, planText, dow } = todaysSuggestion();
+  const streak = computeStreak();
+  const todayEntries = entriesOnDay(today);
+  const todayState = dayState(today);
+  const reminders = checkPlanReminders();
+  const goal = state.config.weeklyGoal;
+  const ws = mondayOf(today);
+  const snap = weekSnapshot(ws);
+
+  // Greeting based on local hour
+  const hr = new Date().getHours();
+  const greeting = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+
+  // Day strip — last 14 days, ending today
+  const stripDays = [];
+  for (let i = 13; i >= 0; i--) stripDays.push(addDays(today, -i));
+
+  root.innerHTML = `
+    <h2 class="view-title">${greeting}</h2>
+
+    <div class="card streak-card">
+      <div style="display:flex; align-items:baseline; gap:12px;">
+        <div class="number">${streak}</div>
+        <div>
+          <div style="font-weight:500; color: var(--ink);">${streak === 1 ? 'day' : 'days'} in a row</div>
+          <div class="label">Rest days you've planned count as keeping up and are part of the plan.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Last 14 days</div>
+      <div class="day-strip" id="day-strip">
+        ${stripDays.map(iso => {
+          const st = dayState(iso);
+          const d = dateFromIso(iso);
+          const isToday = iso === today;
+          return `
+            <button class="day-chip ${isToday ? 'today' : ''}" data-state="${st}" data-iso="${iso}" aria-label="${fmtDayHeading(iso)}">
+              <span class="dow">${DOW_SHORT[d.getDay()]}</span>
+              <span class="num">${d.getDate()}</span>
+              <span class="dot"></span>
+            </button>
+          `;
+        }).join('')}
+      </div>
+      <div class="legend">
+        <span><span class="swatch" style="background:var(--c-programmed)"></span>Programmed activity</span>
+        <span><span class="swatch" style="background:var(--c-light)"></span>Lighter day</span>
+        <span><span class="swatch" style="background:var(--c-rest)"></span>Rest day kept</span>
+      </div>
+    </div>
+
+    ${reminders.length ? reminders.map(r => `
+      <div class="banner"><strong>Heads up.</strong> ${escapeHtml(r.msg)}</div>
+    `).join('') : ''}
+
+    ${goal ? `
+      <div class="card soft">
+        <div class="card-title">This week's goal</div>
+        <div style="font-size: var(--fs-lg);">${escapeHtml(goal)}</div>
+        <div class="small" style="margin-top:6px;">
+          So far: ${snap.daysActive} day${snap.daysActive === 1 ? '' : 's'} kept up
+          ${snap.longestContinuous ? ` · longest continuous ${snap.longestContinuous} min` : ''}
+        </div>
+      </div>
+    ` : ''}
+
+    <h3 style="margin-top:24px;">Log something</h3>
+    <div class="btn-grid-2" style="margin-bottom: 12px;">
+      <button class="btn big primary" onclick="openLog('vitals')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+        Vitals
+      </button>
+      <button class="btn big" onclick="openLog('activity')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="5" r="2"/><path d="M9 22l3-6 3 6M6 12l3 2 3-5 4 5 2-2"/></svg>
+        Activity
+      </button>
+      <button class="btn big" onclick="openLog('ekg')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h3l2-6 4 12 2-9 2 3h5"/></svg>
+        EKG
+      </button>
+      <button class="btn big" onclick="openLog('bloodSugar')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2c4 6 7 9 7 13a7 7 0 0 1-14 0c0-4 3-7 7-13z"/></svg>
+        Blood sugar
+      </button>
+    </div>
+
+    ${todayState !== 'rest' && todayEntries.activity.length === 0 ? `
+      <button class="btn" style="width:100%; margin-bottom:16px;" onclick="markRestDay('${today}')">
+        Mark today as a planned rest day
+      </button>
+    ` : todayState === 'rest' ? `
+      <div class="card soft" style="display:flex; align-items:center; gap:10px; justify-content:space-between;">
+        <span>Today is a planned rest day. Enjoy it.</span>
+        <button class="ghost" onclick="unmarkRestDay('${today}')">Undo</button>
+      </div>
+    ` : ''}
+
+    <h3>Today's session shape</h3>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;">
+        <div>
+          <div style="font-weight:500; font-size: var(--fs-lg);">Stage ${stage.n} — ${escapeHtml(stage.title)}</div>
+          <div class="small">${DOW_FULL[dayOfWeek(today)]}: ${escapeHtml(planText)}</div>
+        </div>
+        <div class="small">Effort target: Borg ${escapeHtml(stage.borg)}</div>
+      </div>
+      <ul class="session-shape">
+        ${stage.shape.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+      </ul>
+      <div class="small" style="margin-top:10px; font-style:italic;">
+        Full talk test throughout. Stop and rest at any of the signs in <a href="#" onclick="switchView('safety'); return false;">Safety</a>.
+      </div>
+    </div>
+
+    <h3>Recent entries</h3>
+    ${renderRecentEntries()}
+
+    <div class="spacer-lg"></div>
+  `;
+
+  // Day-chip taps → open day detail
+  root.querySelectorAll('.day-chip').forEach(el => {
+    el.addEventListener('click', () => openDayDetail(el.dataset.iso));
+  });
+}
+
+function renderRecentEntries() {
+  const all = collectAllEntries().slice(0, 8);
+  if (all.length === 0) {
+    return `<div class="card soft small italic">Nothing logged yet — tap one of the buttons above to begin.</div>`;
+  }
+  return all.map(entryRowHtml).join('');
+}
+
+/** Flatten all entry types into a single sorted list, newest first. */
+function collectAllEntries() {
+  const items = [];
+  state.vitals.forEach(v => items.push({ type: 'vitals', sortKey: v.date + 'T23:59', record: v }));
+  state.activity.forEach(a => items.push({ type: 'activity', sortKey: a.date + 'T12:00', record: a }));
+  state.ekg.forEach(e => items.push({ type: 'ekg', sortKey: e.dateTime || '', record: e }));
+  state.bloodSugar.forEach(b => items.push({ type: 'bloodSugar', sortKey: b.dateTime || '', record: b }));
+  items.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+  return items;
+}
+
+function entryRowHtml(item) {
+  const { type, record } = item;
+  const meta = entryMeta(type, record);
+  const dateIso = (record.date || (record.dateTime || '').slice(0, 10));
+  return `
+    <div class="entry-row" onclick="openDayDetail('${dateIso}')">
+      <div class="entry-icon">${entryIcon(type)}</div>
+      <div class="entry-body">
+        <div class="entry-title">${escapeHtml(meta.title)}</div>
+        <div class="entry-meta">${escapeHtml(meta.subtitle)}</div>
+      </div>
+      <div class="entry-time">${escapeHtml(meta.timeStr)}</div>
+    </div>
+  `;
+}
+
+function entryIcon(type) {
+  if (type === 'vitals')   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>`;
+  if (type === 'activity') return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="2"/><path d="M9 22l3-6 3 6M6 12l3 2 3-5 4 5 2-2"/></svg>`;
+  if (type === 'ekg')      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h3l2-6 4 12 2-9 2 3h5"/></svg>`;
+  if (type === 'bloodSugar') return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2c4 6 7 9 7 13a7 7 0 0 1-14 0c0-4 3-7 7-13z"/></svg>`;
+  return '';
+}
+
+function entryMeta(type, r) {
+  if (type === 'vitals') {
+    const bits = [];
+    if (r.restingHR) bits.push(`HR ${r.restingHR}`);
+    if (r.weight && state.config.weightTrackingEnabled) bits.push(`${r.weight} lb`);
+    const sx = [];
+    if (asBool(r.dizzy)) sx.push('dizzy');
+    if (asBool(r.swelling)) sx.push('swelling');
+    if (asBool(r.breathing)) sx.push('breathing');
+    if (sx.length) bits.push(sx.join(', '));
+    return { title: 'Morning vitals', subtitle: bits.join(' · '), timeStr: fmtDate(r.date) };
+  }
+  if (type === 'activity') {
+    const cat = ACTIVITY_CATEGORIES[r.category] || { label: r.category };
+    if (r.category === 'rest') return { title: 'Planned rest day', subtitle: '', timeStr: fmtDate(r.date) };
+    const subs = Array.isArray(r.subtypes) ? r.subtypes : (typeof r.subtypes === 'string' ? safeParseArray(r.subtypes) : []);
+    const subStr = subs.join(', ');
+    const mins = r.totalMinutes ? `${r.totalMinutes} min` : '';
+    const rounds = r.rounds && r.rounds > 1 ? ` (${r.rounds} × ${r.minutesPerRound})` : '';
+    return {
+      title: `${cat.label}${subStr ? ': ' + subStr : ''}`,
+      subtitle: `${mins}${rounds}${r.borg ? ' · Borg ' + r.borg : ''}`,
+      timeStr: fmtDate(r.date)
+    };
+  }
+  if (type === 'ekg') {
+    return {
+      title: `EKG — ${r.rhythm || 'reading'}`,
+      subtitle: `${r.rate ? r.rate + ' bpm' : ''}${asBool(r.symptomatic) ? ' · symptomatic' : ''}`,
+      timeStr: `${fmtDate((r.dateTime || '').slice(0,10))} ${fmtTime(r.dateTime)}`
+    };
+  }
+  if (type === 'bloodSugar') {
+    return {
+      title: `Blood sugar — ${r.value}`,
+      subtitle: r.context || '',
+      timeStr: `${fmtDate((r.dateTime || '').slice(0,10))} ${fmtTime(r.dateTime)}`
+    };
+  }
+  return { title: '', subtitle: '', timeStr: '' };
+}
+
+function safeParseArray(s) {
+  try { const x = JSON.parse(s); return Array.isArray(x) ? x : []; }
+  catch (e) { return s.split(',').map(t => t.trim()).filter(Boolean); }
+}
+
+function markRestDay(iso) {
+  const list = state.config.restDays || [];
+  if (!list.includes(iso)) {
+    setConfig({ restDays: [...list, iso] });
+  }
+  renderActiveView();
+}
+function unmarkRestDay(iso) {
+  const list = (state.config.restDays || []).filter(d => d !== iso);
+  setConfig({ restDays: list });
+  renderActiveView();
+}
+</script>
+
+<script>
+/* ─── 5b. Log view (chronological list, grouped by day) ─────────── */
+
+let logFilter = 'all';
+
+function renderLog() {
+  const root = document.getElementById('view-log');
+  const all = collectAllEntries().filter(it => logFilter === 'all' || it.type === logFilter);
+
+  // Group by date (YYYY-MM-DD)
+  const groups = new Map();
+  all.forEach(it => {
+    const d = (it.record.date || (it.record.dateTime || '').slice(0, 10)) || 'unknown';
+    if (!groups.has(d)) groups.set(d, []);
+    groups.get(d).push(it);
+  });
+  const sortedDays = Array.from(groups.keys()).sort((a, b) => b.localeCompare(a));
+
+  root.innerHTML = `
+    <h2 class="view-title">Log</h2>
+
+    <div class="chips" style="margin-bottom:18px;">
+      ${[
+        ['all', 'All'],
+        ['vitals', 'Vitals'],
+        ['activity', 'Activity'],
+        ['ekg', 'EKG'],
+        ['bloodSugar', 'Blood sugar']
+      ].map(([k, lbl]) => `
+        <button class="chip ${logFilter === k ? 'selected' : ''}" onclick="setLogFilter('${k}')">${lbl}</button>
+      `).join('')}
+    </div>
+
+    ${sortedDays.length === 0 ? `
+      <div class="card soft small italic">No entries to show.</div>
+    ` : sortedDays.map(d => `
+      <div class="day-group">
+        <div class="day-group-head">
+          <span class="heading">${escapeHtml(fmtDayHeading(d))}</span>
+          <span>${dayState(d) === 'rest' ? 'rest day' : ''}</span>
+        </div>
+        ${groups.get(d).map(entryRowHtml).join('')}
+      </div>
+    `).join('')}
+
+    <div class="spacer-lg"></div>
+  `;
+}
+
+function setLogFilter(k) {
+  logFilter = k;
+  renderLog();
+}
+</script>
+
+<script>
+/* ─── 5c. Trends view + charts ──────────────────────────────────── */
+
+let trendsRange = 28;       // days
+let trendsTab = 'charts';   // charts | snapshot
+
+const chartInstances = new Map(); // canvasId -> Chart
+
+function destroyChart(id) {
+  const c = chartInstances.get(id);
+  if (c) { try { c.destroy(); } catch(e){} chartInstances.delete(id); }
+}
+
+function renderTrends() {
+  const root = document.getElementById('view-trends');
+  root.innerHTML = `
+    <h2 class="view-title">Trends</h2>
+
+    <div class="chips" style="margin-bottom:16px;">
+      <button class="chip ${trendsTab==='charts'?'selected':''}" onclick="setTrendsTab('charts')">Charts</button>
+      <button class="chip ${trendsTab==='snapshot'?'selected':''}" onclick="setTrendsTab('snapshot')">Weekly snapshot</button>
+    </div>
+
+    ${trendsTab === 'charts' ? `
+      <div class="range-chips">
+        ${[[14,'2 wk'], [28,'4 wk'], [90,'3 mo'], [365,'1 yr']].map(([n,l]) => `
+          <button class="chip ${trendsRange===n?'selected':''}" onclick="setTrendsRange(${n})">${l}</button>
+        `).join('')}
+      </div>
+
+      <div class="card chart-card">
+        <h4>Morning resting heart rate</h4>
+        <div class="subtitle">Dots mark EKG events on the same day. Tap a point for details.</div>
+        <div class="chart-wrap"><canvas id="ch-hr"></canvas></div>
+      </div>
+
+      <div class="card chart-card">
+        <h4>Activity minutes per day</h4>
+        <div class="subtitle">Programmed activity only, stacked by type. Daily-activities not counted here.</div>
+        <div class="chart-wrap"><canvas id="ch-minutes"></canvas></div>
+      </div>
+
+      <div class="card chart-card">
+        <h4>Longest continuous activity (staircase)</h4>
+        <div class="subtitle">Best minutes-per-round each day. Watch this climb.</div>
+        <div class="chart-wrap"><canvas id="ch-longest"></canvas></div>
+      </div>
+
+      <div class="card chart-card">
+        <h4>Borg perceived effort</h4>
+        <div class="subtitle">Same work feeling easier over time means real fitness gain.</div>
+        <div class="chart-wrap"><canvas id="ch-borg"></canvas></div>
+      </div>
+
+      <div class="card chart-card">
+        <h4>Blood sugar</h4>
+        <div class="subtitle">Color-coded by context. Tap a point for the exact value.</div>
+        <div class="chart-wrap"><canvas id="ch-bs"></canvas></div>
+      </div>
+
+      ${state.config.weightTrackingEnabled ? `
+        <div class="card chart-card">
+          <h4>Morning weight</h4>
+          <div class="subtitle">Baseline: ${state.config.weightBaselineLb ? state.config.weightBaselineLb + ' lb' : 'not set'}</div>
+          <div class="chart-wrap"><canvas id="ch-weight"></canvas></div>
+        </div>
+      ` : ''}
+    ` : renderWeeklySnapshotPanel()}
+
+    <div class="spacer-lg"></div>
+  `;
+
+  if (trendsTab === 'charts') {
+    // Defer so canvases are in DOM before Chart.js measures them
+    setTimeout(drawAllCharts, 0);
+  }
+}
+
+function setTrendsRange(n) { trendsRange = n; renderTrends(); }
+function setTrendsTab(t) { trendsTab = t; renderTrends(); }
+
+/** Common chart options — calm theme, tap-friendly tooltips. */
+function chartTheme() {
+  const css = getComputedStyle(document.body);
+  const ink = css.getPropertyValue('--ink').trim();
+  const ink2 = css.getPropertyValue('--ink-2').trim();
+  const line = css.getPropertyValue('--line').trim();
+  const muted = css.getPropertyValue('--muted').trim();
+  const accent = css.getPropertyValue('--accent').trim();
+  const panel = css.getPropertyValue('--panel').trim();
+  return { ink, ink2, line, muted, accent, panel };
+}
+
+function rangeDays() {
+  const today = todayISO();
+  return Array.from({ length: trendsRange }, (_, i) => addDays(today, -(trendsRange - 1 - i)));
+}
+
+function drawAllCharts() {
+  if (window.__chartCdnFailed || typeof Chart === 'undefined') {
+    document.querySelectorAll('.chart-wrap').forEach(w => {
+      w.innerHTML = '<div class="chart-empty">Charts unavailable — no internet for chart library.</div>';
+    });
+    return;
+  }
+  drawHrChart();
+  drawMinutesChart();
+  drawLongestChart();
+  drawBorgChart();
+  drawBsChart();
+  if (state.config.weightTrackingEnabled) drawWeightChart();
+}
+
+function emptyHtml(canvasId, msg) {
+  const c = document.getElementById(canvasId);
+  if (!c) return;
+  destroyChart(canvasId);
+  c.parentElement.innerHTML = `<div class="chart-empty">${escapeHtml(msg)}</div>`;
+}
+
+function commonOpts(theme, extra = {}) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 0 },
+    interaction: { mode: 'nearest', intersect: false },
+    plugins: {
+      legend: { display: false, labels: { color: theme.ink2 } },
+      tooltip: {
+        backgroundColor: theme.panel,
+        titleColor: theme.ink,
+        bodyColor: theme.ink2,
+        borderColor: theme.line,
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
+        displayColors: true,
+        ...extra.tooltip
+      },
+      ...extra.plugins
+    },
+    scales: extra.scales || {
+      x: {
+        ticks: { color: theme.muted, font: { size: 10 }, maxRotation: 0, autoSkip: true, autoSkipPadding: 16 },
+        grid:  { color: theme.line, drawBorder: false }
+      },
+      y: {
+        ticks: { color: theme.muted, font: { size: 10 } },
+        grid:  { color: theme.line, drawBorder: false }
+      }
+    }
+  };
+}
+
+function drawHrChart() {
+  const t = chartTheme();
+  const days = rangeDays();
+  // Morning HR points
+  const hrByDay = new Map();
+  state.vitals.forEach(v => { if (v.date && v.restingHR != null && v.restingHR !== '') hrByDay.set(v.date, safeNum(v.restingHR)); });
+  const hrData = days.map(d => hrByDay.has(d) ? hrByDay.get(d) : null);
+  // EKG events on each day → dots at top
+  const ekgByDay = new Map();
+  state.ekg.forEach(e => {
+    const d = (e.dateTime || '').slice(0, 10);
+    if (!d) return;
+    if (!ekgByDay.has(d)) ekgByDay.set(d, []);
+    ekgByDay.get(d).push(e);
+  });
+  const ekgDots = days.map(d => ekgByDay.has(d) ? (safeNum((ekgByDay.get(d)[0]).rate)) : null);
+  const ekgColors = days.map(d => {
+    if (!ekgByDay.has(d)) return 'transparent';
+    const any = ekgByDay.get(d).some(e => (e.rhythm && e.rhythm !== 'normal') || asBool(e.symptomatic));
+    return any ? t.muted : t.accent;
+  });
+
+  if (hrData.every(v => v == null) && ekgDots.every(v => v == null)) {
+    emptyHtml('ch-hr', 'No heart rate data yet.');
+    return;
+  }
+  destroyChart('ch-hr');
+  const ctx = document.getElementById('ch-hr');
+  if (!ctx) return;
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days.map(fmtDate),
+      datasets: [
+        {
+          label: 'Resting HR',
+          data: hrData,
+          borderColor: t.accent,
+          backgroundColor: t.accent + '22',
+          tension: 0.3,
+          spanGaps: true,
+          pointRadius: 3,
+          pointHoverRadius: 6,
+          pointBackgroundColor: t.accent
+        },
+        {
+          label: 'EKG reading',
+          data: ekgDots,
+          showLine: false,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          pointStyle: 'rectRot',
+          pointBackgroundColor: ekgColors,
+          pointBorderColor: ekgColors
+        }
+      ]
+    },
+    options: commonOpts(t, {
+      tooltip: {
+        callbacks: {
+          afterLabel: (ctx) => {
+            if (ctx.datasetIndex !== 1) return '';
+            const d = days[ctx.dataIndex];
+            const list = ekgByDay.get(d) || [];
+            return list.map(e => `${e.rhythm || 'reading'}${asBool(e.symptomatic) ? ' (symptomatic)' : ''}${e.note ? ' — ' + e.note : ''}`);
+          }
+        }
+      }
+    })
+  });
+  chartInstances.set('ch-hr', chart);
+}
+
+function drawMinutesChart() {
+  const t = chartTheme();
+  const days = rangeDays();
+  // Per-day per-category programmed minutes
+  const cats = ['pool', 'walking', 'strength', 'balance'];
+  const catColors = {
+    pool:     t.accent,
+    walking:  '#86a8a8',
+    strength: '#b9a07e',
+    balance:  '#9bb59b'
+  };
+  const datasets = cats.map(cat => ({
+    label: ACTIVITY_CATEGORIES[cat].label,
+    data: days.map(d =>
+      state.activity
+        .filter(a => a.date === d && a.category === cat)
+        .reduce((s, a) => s + (safeNum(a.totalMinutes, 0) || 0), 0)
+    ),
+    backgroundColor: catColors[cat],
+    borderColor: catColors[cat],
+    stack: 'minutes'
+  }));
+  if (datasets.every(ds => ds.data.every(v => v === 0))) {
+    emptyHtml('ch-minutes', 'No activity logged yet.');
+    return;
+  }
+  destroyChart('ch-minutes');
+  const ctx = document.getElementById('ch-minutes');
+  if (!ctx) return;
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: days.map(fmtDate), datasets },
+    options: commonOpts(t, {
+      scales: {
+        x: { stacked: true, ticks: { color: t.muted, font: { size: 10 }, maxRotation: 0, autoSkip: true, autoSkipPadding: 16 }, grid: { color: t.line } },
+        y: { stacked: true, beginAtZero: true, ticks: { color: t.muted, font: { size: 10 } }, grid: { color: t.line }, title: { display: true, text: 'minutes', color: t.muted, font: { size: 10 } } }
+      },
+      plugins: { legend: { display: true, position: 'bottom', labels: { color: t.ink2, font: { size: 11 }, boxWidth: 10 } } }
+    })
+  });
+  chartInstances.set('ch-minutes', chart);
+}
+
+function drawLongestChart() {
+  const t = chartTheme();
+  const days = rangeDays();
+  const data = days.map(d => dayLongestContinuous(d) || null);
+  if (data.every(v => v === null || v === 0)) {
+    emptyHtml('ch-longest', 'No continuous activity recorded yet.');
+    return;
+  }
+  destroyChart('ch-longest');
+  const ctx = document.getElementById('ch-longest');
+  if (!ctx) return;
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days.map(fmtDate),
+      datasets: [{
+        label: 'Longest continuous (min)',
+        data,
+        stepped: 'before',
+        borderColor: t.accent,
+        backgroundColor: t.accent + '22',
+        fill: true,
+        spanGaps: false,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        pointBackgroundColor: t.accent
+      }]
+    },
+    options: commonOpts(t, {
+      scales: {
+        x: { ticks: { color: t.muted, font: { size: 10 }, maxRotation: 0, autoSkip: true, autoSkipPadding: 16 }, grid: { color: t.line } },
+        y: { beginAtZero: true, ticks: { color: t.muted, font: { size: 10 } }, grid: { color: t.line }, title: { display: true, text: 'minutes', color: t.muted, font: { size: 10 } } }
+      }
+    })
+  });
+  chartInstances.set('ch-longest', chart);
+}
+
+function drawBorgChart() {
+  const t = chartTheme();
+  const days = rangeDays();
+  // Average Borg per day across programmed activities
+  const data = days.map(d => {
+    const bs = state.activity
+      .filter(a => a.date === d && asBool(a.isProgrammed) && a.borg != null && a.borg !== '')
+      .map(a => safeNum(a.borg));
+    if (bs.length === 0) return null;
+    return Math.round((bs.reduce((s, b) => s + b, 0) / bs.length) * 10) / 10;
+  });
+  if (data.every(v => v === null)) {
+    emptyHtml('ch-borg', 'No effort ratings yet.');
+    return;
+  }
+  destroyChart('ch-borg');
+  const ctx = document.getElementById('ch-borg');
+  if (!ctx) return;
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days.map(fmtDate),
+      datasets: [{
+        label: 'Avg Borg',
+        data,
+        borderColor: t.accent,
+        backgroundColor: t.accent + '22',
+        tension: 0.3,
+        spanGaps: true,
+        pointRadius: 3,
+        pointBackgroundColor: t.accent
+      }]
+    },
+    options: commonOpts(t, {
+      scales: {
+        x: { ticks: { color: t.muted, font: { size: 10 }, maxRotation: 0, autoSkip: true, autoSkipPadding: 16 }, grid: { color: t.line } },
+        y: { min: 6, max: 20, ticks: { color: t.muted, font: { size: 10 }, stepSize: 2 }, grid: { color: t.line }, title: { display: true, text: 'Borg', color: t.muted, font: { size: 10 } } }
+      }
+    })
+  });
+  chartInstances.set('ch-borg', chart);
+}
+
+function drawBsChart() {
+  const t = chartTheme();
+  const colors = {
+    'fasting':   '#7a9bbd',
+    'pre-meal':  '#c9a86a',
+    'post-meal': '#b56e6e',
+    'bedtime':   '#8c7aa8'
+  };
+  const cutoff = addDays(todayISO(), -trendsRange + 1);
+  const points = state.bloodSugar
+    .filter(b => (b.dateTime || '').slice(0,10) >= cutoff)
+    .sort((a, b) => (a.dateTime || '').localeCompare(b.dateTime || ''));
+  if (points.length === 0) {
+    emptyHtml('ch-bs', 'No blood sugar readings yet.');
+    return;
+  }
+  // Group by context for separate datasets
+  const ctxs = BS_CONTEXTS;
+  const datasets = ctxs.map(c => ({
+    label: c,
+    data: points.filter(p => p.context === c).map(p => ({ x: p.dateTime, y: safeNum(p.value), note: p.note })),
+    borderColor: colors[c],
+    backgroundColor: colors[c] + 'aa',
+    pointRadius: 5,
+    pointHoverRadius: 8,
+    showLine: false
+  })).filter(ds => ds.data.length > 0);
+  destroyChart('ch-bs');
+  const ctx = document.getElementById('ch-bs');
+  if (!ctx) return;
+  const chart = new Chart(ctx, {
+    type: 'scatter',
+    data: { datasets },
+    options: commonOpts(t, {
+      scales: {
+        x: { type: 'time', time: { unit: trendsRange <= 14 ? 'day' : (trendsRange <= 60 ? 'day' : 'week') }, ticks: { color: t.muted, font: { size: 10 }, maxRotation: 0 }, grid: { color: t.line } },
+        y: { beginAtZero: false, ticks: { color: t.muted, font: { size: 10 } }, grid: { color: t.line }, title: { display: true, text: 'mg/dL', color: t.muted, font: { size: 10 } } }
+      },
+      plugins: { legend: { display: true, position: 'bottom', labels: { color: t.ink2, font: { size: 11 }, boxWidth: 8 } } },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.y}${ctx.raw.note ? ' — ' + ctx.raw.note : ''}`
+        }
+      }
+    })
+  });
+  chartInstances.set('ch-bs', chart);
+}
+
+function drawWeightChart() {
+  const t = chartTheme();
+  const days = rangeDays();
+  const byDay = new Map();
+  state.vitals.forEach(v => { if (v.date && v.weight != null && v.weight !== '') byDay.set(v.date, safeNum(v.weight)); });
+  const data = days.map(d => byDay.has(d) ? byDay.get(d) : null);
+  if (data.every(v => v == null)) {
+    emptyHtml('ch-weight', 'No weight entries yet.');
+    return;
+  }
+  destroyChart('ch-weight');
+  const ctx = document.getElementById('ch-weight');
+  if (!ctx) return;
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days.map(fmtDate),
+      datasets: [{
+        label: 'Morning weight',
+        data,
+        borderColor: t.accent,
+        backgroundColor: t.accent + '22',
+        tension: 0.2,
+        spanGaps: true,
+        pointRadius: 3
+      }]
+    },
+    options: commonOpts(t, {
+      scales: {
+        x: { ticks: { color: t.muted, font: { size: 10 }, maxRotation: 0, autoSkip: true, autoSkipPadding: 16 }, grid: { color: t.line } },
+        y: { beginAtZero: false, ticks: { color: t.muted, font: { size: 10 } }, grid: { color: t.line }, title: { display: true, text: 'lb', color: t.muted, font: { size: 10 } } }
+      }
+    })
+  });
+  chartInstances.set('ch-weight', chart);
+}
+
+function renderWeeklySnapshotPanel() {
+  // 8 weeks back, newest first
+  const today = todayISO();
+  const thisMon = mondayOf(today);
+  const weeks = [];
+  for (let i = 0; i < 8; i++) {
+    const ws = addDays(thisMon, -7 * i);
+    weeks.push(weekSnapshot(ws));
+  }
+  const lastDecision = state.stageDecisions
+    .slice().sort((a,b) => (b.weekStartDate||'').localeCompare(a.weekStartDate||''))[0];
+  const thisWeekDecision = state.stageDecisions.find(d => d.weekStartDate === thisMon);
+
+  return `
+    <div class="card">
+      <table class="snap-table">
+        <thead><tr>
+          <th>Week of</th><th>Days</th><th>Longest</th><th>Total</th>
+          <th>Borg</th><th>HR</th><th>Symptoms</th>
+        </tr></thead>
+        <tbody>
+          ${weeks.map(w => `
+            <tr>
+              <td>${escapeHtml(fmtDate(w.weekStart))}</td>
+              <td class="num">${w.daysActive || '–'}</td>
+              <td class="num">${w.longestContinuous || '–'}</td>
+              <td class="num">${w.totalProgrammed || '–'}</td>
+              <td class="num">${w.typicalBorg ?? '–'}</td>
+              <td class="num">${w.hrRange ? w.hrRange[0]+'–'+w.hrRange[1] : '–'}</td>
+              <td>${w.anySymptoms ? 'yes' : '–'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h4 style="margin-top:0;">Stage decision for this week</h4>
+      <p class="small">She decides — the app never auto-advances. Tick the criteria she's actually met, then mark advance / hold / drop back.</p>
+      ${thisWeekDecision ? `
+        <div class="kv"><span class="k">Recorded</span><span class="v">${escapeHtml(thisWeekDecision.choice)}</span></div>
+      ` : ''}
+      <button class="btn primary" onclick="openStageDecision('${thisMon}')">
+        ${thisWeekDecision ? 'Edit this week\'s decision' : 'Make this week\'s decision'}
+      </button>
+    </div>
+
+    <div class="card no-print">
+      <h4 style="margin-top:0;">Send a snapshot</h4>
+      <p class="small">Print-friendly weekly summary suitable for sending to her cardiologist.</p>
+      <button class="btn" onclick="openPrintView('${thisMon}')">Open weekly summary</button>
+    </div>
+  `;
+}
+</script>
+
+<script>
+/* ─── 5d. Guide view ────────────────────────────────────────────── */
+
+function renderGuide() {
+  const root = document.getElementById('view-guide');
+  const curStage = state.config.currentStage;
+  root.innerHTML = `
+    <h2 class="view-title">Guide</h2>
+
+    <h3>Borg perceived-effort scale</h3>
+    <p class="small">A read of how hard the work <em>feels</em>. Her target lives at 11, occasionally 12–13 later on. Never higher without her doctor specifically okaying it.</p>
+    <div class="card">
+      <div class="borg-grid">
+        ${BORG_SCALE.map(b => `
+          <div class="borg-row ${b.tier === 'too-hard' ? 'too-hard' : ''} ${b.tier === 'target' ? 'selected' : ''}">
+            <div class="num">${b.n}</div>
+            <div class="desc">${escapeHtml(b.desc)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <h3>The talk test</h3>
+    <div class="card soft">
+      <p>She should be able to hold a normal conversation the entire time. If she can't finish a sentence, she's working too hard — ease off. This is the master override; it beats every number.</p>
+    </div>
+
+    <h3>Stages</h3>
+    <div class="stage-table">
+      ${STAGES.map(s => `
+        <div class="stage-card ${s.n === curStage ? 'current' : ''}">
+          <h4>Stage ${s.n} — ${escapeHtml(s.title)} <span class="small" style="font-weight:400;">· ${escapeHtml(s.duration)}</span></h4>
+          <div class="meta">Focus: ${escapeHtml(s.focus)} · Effort: Borg ${escapeHtml(s.borg)}</div>
+
+          <div class="section-label">Session shape</div>
+          <ul>${s.shape.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+
+          <div class="section-label">Aquatic examples</div>
+          <ul>${s.aquatic.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+
+          <div class="section-label">Land examples</div>
+          <ul>${s.land.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+
+          <div class="section-label">Ready to advance when…</div>
+          <ul>${s.advance.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+        </div>
+      `).join('')}
+    </div>
+
+    <h3>Warm-up / cool-down menu</h3>
+    <div class="card soft">
+      <p class="small" style="margin-bottom:6px;">Every session, both ends:</p>
+      <ul style="margin: 0; padding-left:20px;">
+        ${WARMUP_COOLDOWN.map(x => `<li>${escapeHtml(x)}</li>`).join('')}
+      </ul>
+    </div>
+
+    <h3>Progression rule</h3>
+    <div class="card soft">
+      <p>One variable at a time, duration before intensity. When advancing, lengthen <strong>time</strong> first, then <strong>frequency</strong>, and only much later nudge <strong>intensity</strong>. Never two at once.</p>
+      <p style="margin-bottom:0;"><strong>Drop back</strong> one stage on any day with more dizziness, new or worse swelling, sudden weight gain, more breathlessness, or a worrying EKG. Return to the lower stage until she feels solid again, then rebuild.</p>
+    </div>
+
+    <div class="spacer-lg"></div>
+  `;
+}
+</script>
+
+<script>
+/* ─── 5e. Safety view (verbatim from plan) ──────────────────────── */
+
+function renderSafety() {
+  const root = document.getElementById('view-safety');
+  root.innerHTML = `
+    <h2 class="view-title">When to stop</h2>
+
+    <div class="safety-block urgent">
+      <h3>Call 911</h3>
+      <ul>${SAFETY.emergency.items.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+      <p style="margin-top:8px;"><strong>${escapeHtml(SAFETY.emergency.extra)}</strong></p>
+    </div>
+
+    <div class="safety-block">
+      <h3>Stop and rest</h3>
+      <ul>${SAFETY.stop.items.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+    </div>
+
+    <div class="safety-block">
+      <h3>Call the doctor same day</h3>
+      <ul>${SAFETY.callDoctor.items.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+    </div>
+
+    <div class="safety-block">
+      <h3>Pool, every time</h3>
+      <ul>${SAFETY.pool.items.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+    </div>
+
+    <div class="card soft small italic">
+      Still her doctor's call, not the plan's: any beta-blocker change, and diabetes precautions around exercise (hydration, low blood sugar, foot care near the pool).
+    </div>
+
+    <div class="spacer-lg"></div>
+  `;
+}
+</script>
+
+<script>
+/* =================================================================
+   Conditioning Guide — single-file app
+   ================================================================= */
+
+/* ─── 1. Constants & plan content ─────────────────────────────────
+   All content here is drawn verbatim from the two markdown sources
+   (Progressive Activity Plan + Activity Workbook & Log). The app
+   does NOT add medical guidance beyond what's in those files. */
+
+/* Borg perceived-effort scale (6–20). Descriptions from the plan. */
+const BORG_SCALE = [
+  { n: 6,  desc: 'Rest — barely moving',           tier: 'rest' },
+  { n: 7,  desc: 'Very, very light',               tier: 'rest' },
+  { n: 8,  desc: 'Very light',                     tier: 'rest' },
+  { n: 9,  desc: 'Very light',                     tier: 'easy' },
+  { n: 10, desc: 'Light',                          tier: 'easy' },
+  { n: 11, desc: 'Light — could do this a long time', tier: 'target' },
+  { n: 12, desc: 'Light to somewhat hard',         tier: 'target' },
+  { n: 13, desc: 'Somewhat hard — sustainable',    tier: 'ceiling' },
+  { n: 14, desc: 'Harder than her target',         tier: 'too-hard' },
+  { n: 15, desc: 'Hard — not for her right now',   tier: 'too-hard' },
+  { n: 16, desc: 'Hard',                           tier: 'too-hard' },
+  { n: 17, desc: 'Very hard',                      tier: 'too-hard' },
+  { n: 18, desc: 'Very hard',                      tier: 'too-hard' },
+  { n: 19, desc: 'Extremely hard',                 tier: 'too-hard' },
+  { n: 20, desc: 'Maximal exertion',               tier: 'too-hard' }
+];
+
+/* Stages 0–4 — focus, Borg target, session shape, examples, advance rules */
+const STAGES = [
+  {
+    n: 0, title: 'Establish baseline',
+    duration: '~1st week',
+    focus: 'Find her true current level',
+    borg: '9–11',
+    shape: [
+      'Keep doing exactly what she does now',
+      'Shallow-water walking/movement, light housework, cats',
+      'Begin logging each session + a morning resting EKG'
+    ],
+    aquatic: [
+      'Her usual shallow-water walking/movement'
+    ],
+    land: [
+      'Her usual housework',
+      'Caring for the cats'
+    ],
+    advance: [
+      'About a week of log + EKG data gathered',
+      'Cardiologist has confirmed she’s okay to progress',
+      'Doctor has given any rate limits to respect'
+    ]
+  },
+  {
+    n: 1, title: 'Build a steady base',
+    duration: '~2–3 weeks',
+    focus: 'Get comfortable, consistent',
+    borg: '11 (light)',
+    shape: [
+      '3–5 min warm-up',
+      '~15–20 min walking total, broken into short bouts (e.g., 3 × 3–5 min) with rests',
+      '3–5 min cool-down',
+      'Full talk test throughout'
+    ],
+    aquatic: [
+      'Chest-deep water walking forward/back',
+      'Gentle marching in place',
+      'Slow arm sweeps through the water'
+    ],
+    land: [
+      'Sit-to-stands from a sturdy chair',
+      'Heel raises (hold the counter)',
+      'Ankle pumps',
+      'Supported single-leg balance',
+      '— one easy set, 2 nonconsecutive days/week'
+    ],
+    advance: [
+      'Session feels light (Borg 11)',
+      'No symptoms during or after',
+      'Quick recovery',
+      'About a week of comfortable sessions'
+    ]
+  },
+  {
+    n: 2, title: 'Lengthen the time',
+    duration: '~3–6 weeks',
+    focus: 'Endurance',
+    borg: '11–12',
+    shape: [
+      'Warm-up',
+      '~10–15 min continuous walking, ~20–30 min total session',
+      'Cool-down',
+      'Talk test still fully intact'
+    ],
+    aquatic: [
+      'Continuous water-walking "laps"',
+      'Wider strides',
+      'Gentle leg swings holding the wall'
+    ],
+    land: [
+      '1–2 sets of strength + balance exercises',
+      'Light resistance band rows',
+      'Wall (incline) push-ups',
+      'Standing hip lifts holding a chair'
+    ],
+    advance: [
+      'The longer session feels light',
+      'No symptoms',
+      'EKG / log stable',
+      'About a week of consistent tolerance'
+    ]
+  },
+  {
+    n: 3, title: 'Gentle intensity and variety',
+    duration: '~6–10 weeks (only if cleared)',
+    focus: 'A little harder, more variety',
+    borg: 'mostly 11; brief 13',
+    shape: [
+      'Warm-up',
+      'Mostly easy walking with a few 1–2 min faster intervals',
+      'Return to easy walking between intervals',
+      'Cool-down — never to breathlessness'
+    ],
+    aquatic: [
+      'Brief faster-walk intervals',
+      'Side-stepping',
+      'Gentle high-knee marching',
+      'Combined arm + leg moves'
+    ],
+    land: [
+      'Light band: seated press, light resistance',
+      'Supported low step-ups',
+      'Longer balance holds'
+    ],
+    advance: [
+      'Intervals feel manageable',
+      'Recovery is quick',
+      'No symptoms',
+      'Readings stable'
+    ]
+  },
+  {
+    n: 4, title: 'Maintenance',
+    duration: 'Ongoing',
+    focus: 'Keep it for life',
+    borg: '11–13',
+    shape: [
+      '~30+ min of comfortable activity most days',
+      'Strength + balance ~2 days/week',
+      'Variety and enjoyment built in'
+    ],
+    aquatic: [
+      'Mix of all the earlier moves for variety'
+    ],
+    land: [
+      '~2 days/week strength + balance'
+    ],
+    advance: [
+      'Sustainable, enjoyable routine',
+      'Or — transition into a covered, supervised cardiac rehab program'
+    ]
+  }
+];
+
+/* Warm-up / cool-down menu (every session, both ends) */
+const WARMUP_COOLDOWN = [
+  'Marching in place',
+  'Gentle arm and leg range-of-motion',
+  'Slow easy walking',
+  'Finish with slow walking and easy stretches'
+];
+
+/* Activity categories + their subtype menus (no weights). */
+const ACTIVITY_CATEGORIES = {
+  pool: {
+    label: 'Pool',
+    programmed: true,
+    subtypes: [
+      'Water walking', 'Side-stepping', 'Gentle marching',
+      'Slow arm sweeps', 'Gentle leg swings', 'Faster-walk interval',
+      'Combined arm + leg moves', 'Other'
+    ]
+  },
+  walking: {
+    label: 'Walking',
+    programmed: true,
+    subtypes: [
+      'Indoor walking', 'Outdoor walking', 'Hallway laps',
+      'Around the block', 'Other'
+    ]
+  },
+  strength: {
+    label: 'Strength (no weights)',
+    programmed: true,
+    subtypes: [
+      'Sit-to-stands', 'Heel raises', 'Ankle pumps',
+      'Wall push-ups', 'Light band rows', 'Standing hip lifts',
+      'Supported low step-ups', 'Other'
+    ]
+  },
+  balance: {
+    label: 'Balance',
+    programmed: true,
+    subtypes: [
+      'Supported single-leg stand', 'Longer balance hold',
+      'Side-stepping (balance focus)', 'Other'
+    ]
+  },
+  daily: {
+    label: 'Daily activities',
+    programmed: false,
+    subtypes: [
+      'Housework', 'Caring for the cats', 'Errands',
+      'Cooking', 'Gardening', 'Other'
+    ]
+  },
+  rest: {
+    label: 'Planned rest day',
+    programmed: false,
+    subtypes: []
+  }
+};
+
+/* EKG rhythm labels — straight from her home device's labels */
+const RHYTHM_LABELS = ['normal', 'afib', 'bradycardia', 'tachycardia', 'unclassified'];
+
+/* Blood sugar contexts */
+const BS_CONTEXTS = ['fasting', 'pre-meal', 'post-meal', 'bedtime'];
+
+/* Sample weekly plan (workbook). User editable in Settings. */
+const DEFAULT_WEEKLY_PLAN = {
+  Mon: 'Pool — structured walking',
+  Tue: 'Land — strength + balance',
+  Wed: 'Pool — structured walking',
+  Thu: 'Land — strength + balance',
+  Fri: 'Pool — structured walking',
+  Sat: 'Walking or gentle activity',
+  Sun: 'Rest / gentle day'
+};
+
+/* Safety content — quoted verbatim from the plan */
+const SAFETY = {
+  stop: {
+    title: 'Stop and rest',
+    items: [
+      'Breathless enough to interrupt speech',
+      'Chest discomfort',
+      'Palpitations',
+      'Lightheadedness',
+      'Nausea'
+    ]
+  },
+  callDoctor: {
+    title: 'Call the doctor same day',
+    items: [
+      'Sudden weight gain (~2–3 lb in a day or ~5 lb in a week)',
+      'Increasing swelling',
+      'More breathless than usual, including needing to prop up to breathe at night',
+      'Dizziness worse or at rest',
+      'Persistently very low resting rate with symptoms',
+      'A worrying EKG reading'
+    ]
+  },
+  emergency: {
+    title: 'Call 911',
+    items: [
+      'Chest pain or pressure',
+      'Fainting or near-fainting',
+      'Severe shortness of breath',
+      'Palpitations with feeling faint',
+      'Bluish lips',
+      'Confusion'
+    ],
+    extra: 'If she feels dizzy in the water, get to the shallow end / edge and out (slowly) right away — don’t wait to see if it passes.'
+  },
+  pool: {
+    title: 'Pool, every time',
+    items: [
+      'Never in the water alone; phone at the edge at minimum',
+      'Shallow enough to stand with her head well clear; walking, not treading or deep water',
+      'Warm, not hot, not cold water',
+      'Get out slowly — sit on the steps a minute before standing',
+      'Out of the midday heat; hydrate; not right after a big meal'
+    ]
+  }
+};
+
+/* The plan's own gentle check-in thresholds (used for soft reminders) */
+const PLAN_THRESHOLDS = {
+  weightGainPerDayLb: 2.5,        // "~2–3 lb in a day"
+  weightGainPerWeekLb: 5,         // "~5 lb in a week"
+};
+
+/* ─── 2. State + LocalStorage ─────────────────────────────────────
+   Single root state object persisted under one key. Local is the
+   source of truth; sync just mirrors to the Google Sheet. */
+
+const LS_KEY = 'conditioning.v1';
+
+const DEFAULT_CONFIG = {
+  currentStage: 0,
+  weeklyPlan: { ...DEFAULT_WEEKLY_PLAN },
+  weeklyGoal: '',
+  medications: [],
+  doctorRanges: {
+    hrFloor: null, hrCeiling: null,
+    bsFasting: { low: null, high: null },
+    bsPostMeal: { low: null, high: null },
+    bsBedtime: { low: null, high: null }
+  },
+  weightTrackingEnabled: false,
+  weightBaselineLb: null,
+  medsTrackingEnabled: false,
+  theme: 'warm',          // warm | soft | contrast | dark
+  textSize: 'normal',     // normal | large | xlarge
+  firstRunComplete: false,
+  restDays: [],           // array of YYYY-MM-DD she has marked as planned rest
+  sheetUrl: ''
+};
+
+let state = {
+  vitals: [],
+  activity: [],
+  ekg: [],
+  bloodSugar: [],
+  stageDecisions: [],
+  config: { ...DEFAULT_CONFIG },
+  unsynced: [],
+  lastSyncAt: null
+};
+
+/* Generate a stable id for entries */
+const uuid = () =>
+  (crypto && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+
+const nowIso = () => new Date().toISOString();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    // Merge config so new defaults appear after upgrades
+    state = {
+      ...state,
+      ...parsed,
+      config: { ...DEFAULT_CONFIG, ...(parsed.config || {}) }
+    };
+  } catch (e) {
+    console.warn('Could not load state:', e);
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn('Could not save state:', e);
+  }
+}
+
+/* Upsert / delete helpers that also queue a sync op */
+function upsertEntry(type, record) {
+  record.id = record.id || uuid();
+  record.updatedAt = nowIso();
+  record.createdAt = record.createdAt || record.updatedAt;
+  const list = state[type];
+  const i = list.findIndex(r => r.id === record.id);
+  if (i >= 0) list[i] = record;
+  else list.push(record);
+  queueSync({ op: 'save', type, record });
+  saveState();
+  return record;
+}
+
+function deleteEntry(type, id) {
+  state[type] = state[type].filter(r => r.id !== id);
+  queueSync({ op: 'delete', type, id });
+  saveState();
+}
+
+function setConfig(patch) {
+  state.config = { ...state.config, ...patch };
+  Object.entries(patch).forEach(([key, value]) => {
+    queueSync({ op: 'saveConfig', key, value });
+  });
+  saveState();
+}
+
+/* ─── 3. Sync layer ───────────────────────────────────────────────
+   POST with Content-Type: text/plain so Apps Script doesn't get
+   hit with a CORS preflight it can't answer. Failed ops stay in
+   the queue and retry on next opportunity. */
+
+function queueSync(op) {
+  op.id = uuid();
+  op.attempts = 0;
+  state.unsynced.push(op);
+  saveState();
+  // Coalesce: flush after a short delay so rapid typing doesn't spam
+  scheduleFlush();
+}
+
+let flushTimer = null;
+function scheduleFlush() {
+  if (flushTimer) return;
+  flushTimer = setTimeout(() => {
+    flushTimer = null;
+    flushSync();
+  }, 500);
+}
+
+async function postOp(op) {
+  const url = state.config.sheetUrl;
+  if (!url) throw new Error('No sheet URL configured');
+  let body;
+  if (op.op === 'save') body = { action: 'save', type: op.type, record: op.record };
+  else if (op.op === 'delete') body = { action: 'delete', type: op.type, id: op.id };
+  else if (op.op === 'saveConfig') body = { action: 'saveConfig', key: op.key, value: op.value };
+  else throw new Error('Unknown op: ' + op.op);
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body),
+    redirect: 'follow'
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || 'Apps Script returned ok:false');
+  return data;
+}
+
+let syncing = false;
+async function flushSync() {
+  if (syncing) return;
+  if (!state.config.sheetUrl) { updateSyncIndicator('offline'); return; }
+  if (state.unsynced.length === 0) { updateSyncIndicator('synced'); return; }
+  syncing = true;
+  updateSyncIndicator('syncing');
+  try {
+    while (state.unsynced.length > 0) {
+      const op = state.unsynced[0];
+      try {
+        await postOp(op);
+        state.unsynced.shift();
+        saveState();
+      } catch (e) {
+        op.attempts = (op.attempts || 0) + 1;
+        if (op.attempts >= 3) {
+          // Park this op for later and continue with the rest
+          state.unsynced.shift();
+          state.unsynced.push(op);
+          saveState();
+          updateSyncIndicator('error', e.message);
+          syncing = false;
+          return;
+        }
+        saveState();
+        updateSyncIndicator('error', e.message);
+        syncing = false;
+        return;
+      }
+    }
+    state.lastSyncAt = nowIso();
+    saveState();
+    updateSyncIndicator('synced');
+  } finally {
+    syncing = false;
+  }
+}
+
+/** Pull a snapshot from the sheet (used on first connect / manual refresh).
+ *  Local data wins on id conflicts to avoid stomping unsynced entries. */
+async function pullFromSheet() {
+  const url = state.config.sheetUrl;
+  if (!url) return { ok: false, error: 'No sheet URL' };
+  updateSyncIndicator('syncing');
+  try {
+    const res = await fetch(url + '?t=' + Date.now(), { method: 'GET', redirect: 'follow' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    ['vitals','activity','ekg','bloodSugar','stageDecisions'].forEach(type => {
+      const remote = data[type] || [];
+      const byId = new Map(state[type].map(r => [r.id, r]));
+      remote.forEach(r => { if (r.id && !byId.has(r.id)) byId.set(r.id, r); });
+      state[type] = Array.from(byId.values());
+    });
+    if (data.config && Object.keys(data.config).length > 0) {
+      state.config = { ...DEFAULT_CONFIG, ...data.config, sheetUrl: state.config.sheetUrl };
+    }
+    state.lastSyncAt = nowIso();
+    saveState();
+    updateSyncIndicator('synced');
+    return { ok: true };
+  } catch (e) {
+    updateSyncIndicator('error', e.message);
+    return { ok: false, error: e.message };
+  }
+}
+
+function updateSyncIndicator(status, msg) {
+  const dot = document.getElementById('sync-dot');
+  const text = document.getElementById('sync-text');
+  if (!dot || !text) return;
+  dot.className = '';
+  dot.classList.add(status);
+  const pending = state.unsynced.length;
+  if (status === 'synced')   text.textContent = '';
+  else if (status === 'syncing') text.textContent = pending ? `${pending}…` : '';
+  else if (status === 'offline') text.textContent = pending ? `${pending} pending` : '';
+  else if (status === 'error')   text.textContent = pending ? `${pending} retry` : 'retry';
+  if (msg) dot.title = msg;
+}
+</script>
+</body>
+</html>
