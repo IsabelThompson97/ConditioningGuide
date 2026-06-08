@@ -8,7 +8,7 @@
  *
  * Endpoints
  * ─────────
- *   GET  → returns { ok, vitals, activity, ekg, bloodSugar, stageDecisions, config }
+ *   GET  → returns { ok, vitals, activity, ekg, bloodSugar, stageDecisions, doctorNotes, config }
  *   POST → JSON body, action ∈ {save, delete, bulkSave, saveConfig, ping}
  *          POSTs use Content-Type: text/plain to skip the CORS preflight that
  *          Apps Script web apps cannot answer.
@@ -20,7 +20,8 @@ const TABS = {
   activity:       'Activity',
   ekg:            'EKG',
   bloodSugar:     'BloodSugar',
-  stageDecisions: 'StageDecisions'
+  stageDecisions: 'StageDecisions',
+  doctorNotes:    'DoctorNotes'
 };
 const CONFIG_TAB = 'Config';
 
@@ -38,7 +39,7 @@ const SEED_HEADERS = {
   activity: [
     'id', 'date', 'category', 'subtypes',
     'totalMinutes', 'rounds', 'minutesPerRound', 'restBetweenMin',
-    'borg', 'talkTestOK', 'feeling',
+    'borg', 'talkTestOK', 'recoveryHR', 'feeling',
     'dizzyDuring', 'swellingDuring', 'breathingDuring', 'symptomNoteDuring',
     'note', 'isProgrammed', 'createdAt', 'updatedAt'
   ],
@@ -53,6 +54,9 @@ const SEED_HEADERS = {
   stageDecisions: [
     'id', 'weekStartDate', 'stage', 'choice', 'criteriaTicked',
     'note', 'createdAt', 'updatedAt'
+  ],
+  doctorNotes: [
+    'id', 'date', 'body', 'createdAt', 'updatedAt'
   ]
 };
 
@@ -227,6 +231,7 @@ function doGet(e) {
       ekg:            readAll_('ekg'),
       bloodSugar:     readAll_('bloodSugar'),
       stageDecisions: readAll_('stageDecisions'),
+      doctorNotes:    readAll_('doctorNotes'),
       config:         readConfig_()
     });
   } catch (err) {

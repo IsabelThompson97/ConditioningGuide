@@ -553,6 +553,63 @@ button.big:active, .btn.big:active {
   border-radius: 50%; margin-right: 5px; vertical-align: middle;
 }
 
+/* ---------- Calendar heatmap (Trends → Calendar tab) ---------- */
+.cal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.cal-head .cal-title { font-family: var(--font-serif); font-size: var(--fs-display); }
+.cal-head button.cal-nav {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 8px;
+  width: 36px; height: 36px;
+  cursor: pointer;
+  color: var(--ink-2);
+  font-family: inherit;
+}
+.cal-head button.cal-nav:hover { background: var(--panel-2); }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.cal-dow {
+  text-align: center;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  padding-bottom: 4px;
+}
+.cal-cell {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink-2);
+  padding: 4px;
+  position: relative;
+  transition: transform 0.08s ease;
+}
+.cal-cell:active { transform: scale(0.96); }
+.cal-cell.other-month { opacity: 0.32; cursor: default; }
+.cal-cell.today { border-color: var(--accent); border-width: 2px; }
+.cal-cell .cal-num { font-size: var(--fs-body-sm); font-weight: 500; }
+.cal-cell .cal-mins {
+  font-size: 10px; color: var(--muted);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+.cal-cell[data-state="programmed"] { background: color-mix(in srgb, var(--c-programmed) 28%, var(--panel)); }
+.cal-cell[data-state="light"]      { background: color-mix(in srgb, var(--c-light) 32%, var(--panel)); }
+.cal-cell[data-state="rest"]       { background: color-mix(in srgb, var(--c-rest) 28%, var(--panel)); }
+.cal-cell[data-state="empty"]      { background: var(--panel); }
+
 /* ---------- Streak card ---------- */
 .streak-card {
   background: linear-gradient(135deg, var(--accent-soft), var(--panel));
@@ -984,6 +1041,23 @@ input:focus, select:focus, textarea:focus {
   padding: 22px 20px 18px;
 }
 .narrative-eyebrow { display: block; margin-bottom: 14px; }
+.narrative-print {
+  background: transparent;
+  border: 1px solid var(--accent-deep);
+  color: var(--accent-deep);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body-sm);
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.narrative-print:hover {
+  background: var(--panel);
+}
 .narrative-hero {
   display: flex; align-items: baseline; gap: 14px;
   margin-bottom: 18px;
@@ -1172,6 +1246,9 @@ a { color: var(--accent-deep); }
       <span id="sync-dot"></span>
       <span id="sync-text"></span>
     </div>
+    <button class="icon-btn" id="quick-log" aria-label="Quick log entry" title="Quick log">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
     <button class="icon-btn" id="open-settings" aria-label="Settings" title="Settings">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
@@ -1418,7 +1495,10 @@ function todaysSuggestion() {
 function checkPlanReminders() {
   const reminders = [];
   const today = todayISO();
-  // Weight-gain check (only if user has enabled weight tracking AND set a baseline)
+  const th = thresholds();
+  // Weight-gain check (only if user has enabled weight tracking AND set a baseline).
+  // Settings labels these thresholds "fluctuation" but the math is gain-only —
+  // a sudden drop is not a check-in trigger in the plan.
   if (state.config.weightTrackingEnabled && state.config.weightBaselineLb) {
     const weights = state.vitals
       .filter(v => v.weight !== null && v.weight !== undefined && v.weight !== '')
@@ -1431,9 +1511,9 @@ function checkPlanReminders() {
         const prior = weights[weights.length - 2];
         if (prior && safeNum(prior.weight) !== null) {
           const diff = lastW - safeNum(prior.weight);
-          if (diff >= PLAN_THRESHOLDS.weightGainPerDayLb) {
+          if (diff >= th.weightGainPerDayLb) {
             reminders.push({
-              msg: `Morning weight is ${diff.toFixed(1)} lb up from yesterday. The plan lists ~2–3 lb in a day as a check-in sign — consider contacting your doctor.`
+              msg: `Morning weight is ${diff.toFixed(1)} lb up from yesterday. The plan lists this as a check-in sign — consider contacting your doctor.`
             });
           }
         }
@@ -1442,9 +1522,9 @@ function checkPlanReminders() {
         const old = weights.find(w => w.date >= weekAgoCut);
         if (old && safeNum(old.weight) !== null) {
           const diff = lastW - safeNum(old.weight);
-          if (diff >= PLAN_THRESHOLDS.weightGainPerWeekLb) {
+          if (diff >= th.weightGainPerWeekLb) {
             reminders.push({
-              msg: `Morning weight is ${diff.toFixed(1)} lb up over about a week. The plan lists ~5 lb in a week as a check-in sign — consider contacting your doctor.`
+              msg: `Morning weight is ${diff.toFixed(1)} lb up over about a week. The plan lists this as a check-in sign — consider contacting your doctor.`
             });
           }
         }
@@ -1465,6 +1545,28 @@ function checkPlanReminders() {
       }
     }
   }
+  // Blood-sugar range reminders — most recent reading per context, only
+  // flag if a low/high is set AND the value is outside it. No nag per
+  // entry; this runs on Today render and only surfaces when notable.
+  const bsCtxMap = {
+    'fasting':   r.bsFasting,
+    'post-meal': r.bsPostMeal,
+    'bedtime':   r.bsBedtime
+  };
+  Object.entries(bsCtxMap).forEach(([ctx, range]) => {
+    if (!range || (range.low == null && range.high == null)) return;
+    const latest = state.bloodSugar
+      .filter(b => b.context === ctx && b.value != null && b.value !== '')
+      .sort((a, b) => (b.dateTime || '').localeCompare(a.dateTime || ''))[0];
+    if (!latest) return;
+    const v = safeNum(latest.value);
+    if (v === null) return;
+    if (range.low != null && v < range.low) {
+      reminders.push({ msg: `Last ${ctx} blood sugar (${v}) is below the floor you entered (${range.low}).` });
+    } else if (range.high != null && v > range.high) {
+      reminders.push({ msg: `Last ${ctx} blood sugar (${v}) is above the ceiling you entered (${range.high}).` });
+    }
+  });
   return reminders;
 }
 
@@ -1503,6 +1605,74 @@ function renderToday() {
       </div>
     </div>
 
+    ${reminders.length ? reminders.map(r => `
+      <div class="banner"><strong>Heads up.</strong> ${escapeHtml(r.msg)}</div>
+    `).join('') : ''}
+
+    <h3 style="margin-top:24px;">Today's session shape</h3>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;">
+        <div>
+          <div style="font-weight:500; font-size: var(--fs-lg);">Stage ${stage.n} — ${escapeHtml(stage.title)}</div>
+          <div class="small">${DOW_FULL[dayOfWeek(today)]}: ${escapeHtml(planText)}</div>
+        </div>
+        <div class="small">Effort target: Borg ${escapeHtml(stage.borg)}</div>
+      </div>
+      <ul class="session-shape">
+        ${stage.shape.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+      </ul>
+      <div class="small" style="margin-top:10px; font-style:italic;">
+        Full talk test throughout. Stop and rest at any of the signs in <a href="#" onclick="switchView('safety'); return false;">Safety</a>.
+      </div>
+    </div>
+
+    <h3>Log something</h3>
+    <div class="btn-grid-2" style="margin-bottom: 12px;">
+      <button class="btn big" onclick="openLog('vitals')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+        Vitals
+      </button>
+      <button class="btn big" onclick="openLog('activity')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="5" r="2"/><path d="M9 22l3-6 3 6M6 12l3 2 3-5 4 5 2-2"/></svg>
+        Activity
+      </button>
+      <button class="btn big" onclick="openLog('ekg')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h3l2-6 4 12 2-9 2 3h5"/></svg>
+        EKG
+      </button>
+      <button class="btn big" onclick="openLog('bloodSugar')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2c4 6 7 9 7 13a7 7 0 0 1-14 0c0-4 3-7 7-13z"/></svg>
+        Blood sugar
+      </button>
+    </div>
+
+    ${todayState === 'rest' ? `
+      <div class="card soft" style="display:flex; align-items:center; gap:10px; justify-content:space-between; margin-bottom:16px;">
+        <span>Today is a planned rest day. Enjoy it.</span>
+        <button class="ghost" onclick="unmarkRestDay('${today}')">Undo</button>
+      </div>
+    ` : `
+      <button class="btn" style="width:100%; margin-bottom:16px;" onclick="markRestDay('${today}')">
+        Mark today as a planned rest day
+      </button>
+    `}
+
+    <h3>Goals</h3>
+    ${goal ? `
+      <div class="card soft">
+        <div class="card-title">This week's goal</div>
+        <div style="font-size: var(--fs-lg);">${escapeHtml(goal)}</div>
+        <div class="small" style="margin-top:6px;">
+          So far: ${snap.daysActive} day${snap.daysActive === 1 ? '' : 's'} kept up
+          ${snap.longestContinuous ? ` · longest continuous ${snap.longestContinuous} min` : ''}
+        </div>
+      </div>
+    ` : `
+      <div class="card soft small italic">
+        No goal set for this week yet. <a href="#" onclick="switchView('settings'); return false;">Settings → Weekly goal</a> to add one.
+      </div>
+    `}
+
     <div class="card">
       <div class="card-title">Last 14 days</div>
       <div class="day-strip" id="day-strip">
@@ -1523,69 +1693,6 @@ function renderToday() {
         <span><span class="swatch" style="background:var(--c-programmed)"></span>Programmed activity</span>
         <span><span class="swatch" style="background:var(--c-light)"></span>Lighter day</span>
         <span><span class="swatch" style="background:var(--c-rest)"></span>Rest day kept</span>
-      </div>
-    </div>
-
-    ${reminders.length ? reminders.map(r => `
-      <div class="banner"><strong>Heads up.</strong> ${escapeHtml(r.msg)}</div>
-    `).join('') : ''}
-
-    ${goal ? `
-      <div class="card soft">
-        <div class="card-title">This week's goal</div>
-        <div style="font-size: var(--fs-lg);">${escapeHtml(goal)}</div>
-        <div class="small" style="margin-top:6px;">
-          So far: ${snap.daysActive} day${snap.daysActive === 1 ? '' : 's'} kept up
-          ${snap.longestContinuous ? ` · longest continuous ${snap.longestContinuous} min` : ''}
-        </div>
-      </div>
-    ` : ''}
-
-    <h3 style="margin-top:24px;">Log something</h3>
-    <div class="btn-grid-2" style="margin-bottom: 12px;">
-      <button class="btn big" onclick="openLog('vitals')">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
-        Vitals
-      </button>
-      <button class="btn big" onclick="openLog('activity')">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="5" r="2"/><path d="M9 22l3-6 3 6M6 12l3 2 3-5 4 5 2-2"/></svg>
-        Activity
-      </button>
-      <button class="btn big" onclick="openLog('ekg')">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h3l2-6 4 12 2-9 2 3h5"/></svg>
-        EKG
-      </button>
-      <button class="btn big" onclick="openLog('bloodSugar')">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2c4 6 7 9 7 13a7 7 0 0 1-14 0c0-4 3-7 7-13z"/></svg>
-        Blood sugar
-      </button>
-    </div>
-
-    ${todayState !== 'rest' && todayEntries.activity.length === 0 ? `
-      <button class="btn" style="width:100%; margin-bottom:16px;" onclick="markRestDay('${today}')">
-        Mark today as a planned rest day
-      </button>
-    ` : todayState === 'rest' ? `
-      <div class="card soft" style="display:flex; align-items:center; gap:10px; justify-content:space-between;">
-        <span>Today is a planned rest day. Enjoy it.</span>
-        <button class="ghost" onclick="unmarkRestDay('${today}')">Undo</button>
-      </div>
-    ` : ''}
-
-    <h3>Today's session shape</h3>
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;">
-        <div>
-          <div style="font-weight:500; font-size: var(--fs-lg);">Stage ${stage.n} — ${escapeHtml(stage.title)}</div>
-          <div class="small">${DOW_FULL[dayOfWeek(today)]}: ${escapeHtml(planText)}</div>
-        </div>
-        <div class="small">Effort target: Borg ${escapeHtml(stage.borg)}</div>
-      </div>
-      <ul class="session-shape">
-        ${stage.shape.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
-      </ul>
-      <div class="small" style="margin-top:10px; font-style:italic;">
-        Full talk test throughout. Stop and rest at any of the signs in <a href="#" onclick="switchView('safety'); return false;">Safety</a>.
       </div>
     </div>
 
@@ -1712,6 +1819,52 @@ let logFilter = 'all';
 
 function renderLog() {
   const root = document.getElementById('view-log');
+
+  const chipsHtml = `
+    <div class="chips" style="margin-bottom:18px;">
+      ${[
+        ['all', 'All'],
+        ['vitals', 'Vitals'],
+        ['activity', 'Activity'],
+        ['ekg', 'EKG'],
+        ['bloodSugar', 'Blood sugar'],
+        ['doctor', 'Doctor']
+      ].map(([k, lbl]) => `
+        <button class="chip ${logFilter === k ? 'selected' : ''}" onclick="setLogFilter('${k}')">${lbl}</button>
+      `).join('')}
+    </div>
+  `;
+
+  // Doctor notes panel — separate list, never goes through collectAllEntries
+  if (logFilter === 'doctor') {
+    const notes = state.doctorNotes.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    root.innerHTML = `
+      <h2 class="view-title">Log</h2>
+      ${chipsHtml}
+      <p class="small" style="margin-top:-6px; margin-bottom:14px;">
+        Questions or notes to bring up at your next appointment. Kept out of your daily logs and trends; included in the printable weekly summary.
+      </p>
+      <button class="btn primary" style="width:100%; margin-bottom:14px;" onclick="openDoctorNoteForm()">
+        + New note for doctor
+      </button>
+      ${notes.length === 0 ? `
+        <div class="card soft small italic">No notes yet — tap above to jot one down.</div>
+      ` : notes.map(n => `
+        <div class="entry-row" onclick="openDoctorNoteFormById('${escapeHtml(n.id)}')">
+          <div class="entry-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4M8 12h8M8 16h6"/></svg>
+          </div>
+          <div class="entry-body">
+            <div class="entry-title">${escapeHtml((n.body || '').split('\n')[0].slice(0, 80) || 'Note')}</div>
+            <div class="entry-sub">${escapeHtml(fmtDate(n.date))}</div>
+          </div>
+        </div>
+      `).join('')}
+      <div class="spacer-lg"></div>
+    `;
+    return;
+  }
+
   const all = collectAllEntries().filter(it => logFilter === 'all' || it.type === logFilter);
 
   // Group by date (YYYY-MM-DD)
@@ -1726,17 +1879,7 @@ function renderLog() {
   root.innerHTML = `
     <h2 class="view-title">Log</h2>
 
-    <div class="chips" style="margin-bottom:18px;">
-      ${[
-        ['all', 'All'],
-        ['vitals', 'Vitals'],
-        ['activity', 'Activity'],
-        ['ekg', 'EKG'],
-        ['bloodSugar', 'Blood sugar']
-      ].map(([k, lbl]) => `
-        <button class="chip ${logFilter === k ? 'selected' : ''}" onclick="setLogFilter('${k}')">${lbl}</button>
-      `).join('')}
-    </div>
+    ${chipsHtml}
 
     ${sortedDays.length === 0 ? `
       <div class="card soft small italic">No entries to show.</div>
@@ -1758,13 +1901,101 @@ function setLogFilter(k) {
   logFilter = k;
   renderLog();
 }
+
+/* ─── Doctor notes — free-form questions for the next appointment.
+ *    Intentionally excluded from collectAllEntries so they don't appear
+ *    in Today's recent entries, the day strip, or Trends. Only surfaced
+ *    on the Log → Doctor chip and in the printable weekly summary. */
+
+/* Quick-log picker — small modal from the top-bar "+" button. Lets her
+ * jump straight into any entry type without first navigating to Today. */
+function openQuickLogPicker() {
+  const html = `
+    <div class="modal-head">
+      <h2>Log an entry</h2>
+      <button class="icon-btn" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="btn-grid-2" style="margin-bottom: 8px;">
+        <button class="btn big" onclick="closeModal(); openLog('vitals')">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+          Vitals
+        </button>
+        <button class="btn big" onclick="closeModal(); openLog('activity')">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="5" r="2"/><path d="M9 22l3-6 3 6M6 12l3 2 3-5 4 5 2-2"/></svg>
+          Activity
+        </button>
+        <button class="btn big" onclick="closeModal(); openLog('ekg')">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h3l2-6 4 12 2-9 2 3h5"/></svg>
+          EKG
+        </button>
+        <button class="btn big" onclick="closeModal(); openLog('bloodSugar')">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2c4 6 7 9 7 13a7 7 0 0 1-14 0c0-4 3-7 7-13z"/></svg>
+          Blood sugar
+        </button>
+      </div>
+      <button class="btn" style="width:100%;" onclick="closeModal(); openDoctorNoteForm()">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4M8 12h8M8 16h6"/></svg>
+        Note for doctor
+      </button>
+    </div>
+  `;
+  openModal(html, { full: false });
+}
+
+function openDoctorNoteFormById(id) {
+  const n = state.doctorNotes.find(x => x.id === id);
+  if (n) openDoctorNoteForm(n);
+}
+
+function openDoctorNoteForm(prefill) {
+  const r = prefill || { date: todayISO(), body: '' };
+  const html = `
+    <div class="modal-head">
+      <h2>${prefill ? 'Edit' : 'New'} doctor note</h2>
+      <button class="icon-btn" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field">
+        <span class="lbl">Date</span>
+        <input type="date" id="f-dn-date" value="${escapeHtml(r.date || todayISO())}" />
+      </label>
+      <label class="field">
+        <span class="lbl">Question or note</span>
+        <textarea id="f-dn-body" rows="6" placeholder="e.g. ask about adjusting the beta blocker timing">${escapeHtml(r.body || '')}</textarea>
+      </label>
+    </div>
+    <div class="modal-foot">
+      ${prefill ? `<button class="btn danger" onclick="deleteAndClose('doctorNotes','${prefill.id}')">Delete</button>` : ''}
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="saveDoctorNoteForm('${prefill ? prefill.id : ''}')">Save</button>
+    </div>
+  `;
+  openModal(html);
+}
+
+function saveDoctorNoteForm(existingId) {
+  const body = document.getElementById('f-dn-body').value.trim();
+  if (!body) { alert('Add a note or question first.'); return; }
+  const record = {
+    id: existingId || undefined,
+    date: document.getElementById('f-dn-date').value || todayISO(),
+    body
+  };
+  upsertEntry('doctorNotes', record);
+  closeModal();
+  flushSync();
+  renderActiveView();
+}
 </script>
 
 <script>
 /* ─── 5c. Trends view + charts ──────────────────────────────────── */
 
 let trendsRange = 28;       // days
-let trendsTab = 'snapshot'; // snapshot | charts — snapshot is the default
+let trendsTab = 'snapshot'; // snapshot | charts | calendar — snapshot is the default
+let calendarMonth = null;   // 'YYYY-MM' — lazily initialized to current month on first render
+let chartsShowRolling = false; // toggled by the Charts-tab "rolling avg" switch
 
 const chartInstances = new Map(); // canvasId -> Chart
 
@@ -1781,18 +2012,24 @@ function renderTrends() {
     <div class="chips" style="margin-bottom:16px;">
       <button class="chip ${trendsTab==='snapshot'?'selected':''}" onclick="setTrendsTab('snapshot')">Weekly snapshot</button>
       <button class="chip ${trendsTab==='charts'?'selected':''}" onclick="setTrendsTab('charts')">Charts</button>
+      <button class="chip ${trendsTab==='calendar'?'selected':''}" onclick="setTrendsTab('calendar')">Calendar</button>
     </div>
 
     ${trendsTab === 'charts' ? `
-      <div class="range-chips">
-        ${[[14,'2 wk'], [28,'4 wk'], [90,'3 mo'], [365,'1 yr']].map(([n,l]) => `
-          <button class="chip ${trendsRange===n?'selected':''}" onclick="setTrendsRange(${n})">${l}</button>
-        `).join('')}
+      <div class="range-chips" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <div class="chips" style="margin:0;">
+          ${[[14,'2 wk'], [28,'4 wk'], [90,'3 mo'], [365,'1 yr']].map(([n,l]) => `
+            <button class="chip ${trendsRange===n?'selected':''}" onclick="setTrendsRange(${n})">${l}</button>
+          `).join('')}
+        </div>
+        <button class="chip ${chartsShowRolling?'selected':''}" onclick="toggleChartsRolling()" title="Overlay 7-day rolling average">7-day avg</button>
       </div>
 
       <div class="card chart-card">
-        <h4>Morning resting heart rate</h4>
-        <div class="subtitle">Dots mark EKG events on the same day. Tap a point for details.</div>
+        <h4>Heart rate</h4>
+        <div class="subtitle">${state.activity.some(a => a.recoveryHR != null && a.recoveryHR !== '')
+          ? 'Morning resting + 1-min post-session recovery. Dots mark EKG events on the same day. Tap a point for details.'
+          : 'Morning resting heart rate. Dots mark EKG events on the same day. Tap a point for details.'}</div>
         <div class="chart-wrap"><canvas id="ch-hr"></canvas></div>
       </div>
 
@@ -1827,7 +2064,8 @@ function renderTrends() {
           <div class="chart-wrap"><canvas id="ch-weight"></canvas></div>
         </div>
       ` : ''}
-    ` : renderWeeklySnapshotPanel()}
+    ` : trendsTab === 'calendar' ? renderCalendarPanel()
+      : renderWeeklySnapshotPanel()}
 
     <div class="spacer-lg"></div>
   `;
@@ -1836,10 +2074,158 @@ function renderTrends() {
     // Defer so canvases are in DOM before Chart.js measures them
     setTimeout(drawAllCharts, 0);
   }
+  if (trendsTab === 'calendar') {
+    // Wire up day-cell taps to open the same day-detail modal the strip uses
+    root.querySelectorAll('.cal-cell[data-iso]').forEach(el => {
+      el.addEventListener('click', () => openDayDetail(el.dataset.iso));
+    });
+  }
 }
 
 function setTrendsRange(n) { trendsRange = n; renderTrends(); }
 function setTrendsTab(t) { trendsTab = t; renderTrends(); }
+function toggleChartsRolling() { chartsShowRolling = !chartsShowRolling; renderTrends(); }
+
+/** 7-day trailing rolling mean over an array of numbers/nulls. Returns
+ *  an array of the same length: each index i is the mean of the last
+ *  `window` non-null entries up to and including i, or null if there
+ *  are no values in that window. Used to overlay a smoothed line on
+ *  the noisy daily charts. */
+function rollingMean(arr, window) {
+  window = window || 7;
+  const out = new Array(arr.length).fill(null);
+  for (let i = 0; i < arr.length; i++) {
+    const start = Math.max(0, i - window + 1);
+    let sum = 0, n = 0;
+    for (let j = start; j <= i; j++) {
+      if (arr[j] != null && !isNaN(arr[j])) { sum += arr[j]; n++; }
+    }
+    if (n > 0) out[i] = Math.round((sum / n) * 10) / 10;
+  }
+  return out;
+}
+
+/** Build a smoothed overlay dataset for a daily numeric series. Caller
+ *  should fade the underlying daily series (lower opacity, smaller points)
+ *  when this is in use. */
+function rollingOverlayDataset(theme, label, data, color) {
+  color = color || theme.ink;
+  return {
+    label: '7-day avg — ' + label,
+    data: rollingMean(data, 7),
+    borderColor: color,
+    backgroundColor: 'transparent',
+    borderWidth: 2.5,
+    tension: 0.4,
+    cubicInterpolationMode: 'monotone',
+    spanGaps: true,
+    pointRadius: 0,
+    pointHoverRadius: 3,
+    fill: false,
+    order: -1   // draw on top of the faded daily series
+  };
+}
+
+/* ─── Calendar heatmap ──────────────────────────────────────────────
+ *  Month grid colored by dayState. Title shows the month; arrows step.
+ *  Tapping a cell opens the day-detail modal (same one the Today strip
+ *  uses). "Other-month" cells render in low opacity so the grid stays
+ *  rectangular but the focus is the selected month. */
+
+function currentCalendarMonth() {
+  if (calendarMonth) return calendarMonth;
+  const t = todayISO();
+  return calendarMonth = t.slice(0, 7); // YYYY-MM
+}
+
+function stepCalendarMonth(delta) {
+  const cur = currentCalendarMonth();
+  const [y, m] = cur.split('-').map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  calendarMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  renderTrends();
+}
+
+function renderCalendarPanel() {
+  const ym = currentCalendarMonth();
+  const [y, m] = ym.split('-').map(Number);
+  const first = new Date(y, m - 1, 1);
+  const monthLabel = first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+  // Grid starts on Monday. JS: getDay() Sun=0..Sat=6 → shift so Mon=0.
+  const firstDow = (first.getDay() + 6) % 7;
+  const gridStart = new Date(y, m - 1, 1 - firstDow);
+  const today = todayISO();
+
+  // 6 rows × 7 cols always — keeps the grid height stable across months
+  const cells = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
+    const iso = isoFromDate(d);
+    const inMonth = d.getMonth() === m - 1;
+    const st = dayState(iso);
+    const mins = inMonth ? totalActivityMinutesOnDay(iso) : 0;
+    const isToday = iso === today;
+    const tooltip = inMonth ? calendarCellTooltip(iso) : '';
+    cells.push({ iso, day: d.getDate(), inMonth, st, mins, isToday, tooltip });
+  }
+
+  const dowLabels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  return `
+    <div class="card">
+      <div class="cal-head">
+        <button class="cal-nav" onclick="stepCalendarMonth(-1)" aria-label="Previous month">‹</button>
+        <div class="cal-title">${escapeHtml(monthLabel)}</div>
+        <button class="cal-nav" onclick="stepCalendarMonth(1)" aria-label="Next month">›</button>
+      </div>
+      <div class="cal-grid">
+        ${dowLabels.map(d => `<div class="cal-dow">${d}</div>`).join('')}
+        ${cells.map(c => `
+          <button class="cal-cell ${c.inMonth ? '' : 'other-month'} ${c.isToday ? 'today' : ''}"
+                  data-state="${c.st}"
+                  ${c.inMonth ? `data-iso="${c.iso}"` : ''}
+                  ${c.inMonth ? `title="${escapeHtml(c.tooltip)}"` : ''}
+                  ${c.inMonth ? '' : 'disabled'}>
+            <span class="cal-num">${c.day}</span>
+            ${c.inMonth && c.mins > 0 ? `<span class="cal-mins">${c.mins}m</span>` : ''}
+          </button>
+        `).join('')}
+      </div>
+      <div class="legend" style="margin-top:14px;">
+        <span><span class="swatch" style="background:var(--c-programmed)"></span>Programmed</span>
+        <span><span class="swatch" style="background:var(--c-light)"></span>Light day</span>
+        <span><span class="swatch" style="background:var(--c-rest)"></span>Rest day</span>
+        <span><span class="swatch" style="background:var(--panel); border:1px solid var(--line)"></span>Empty</span>
+      </div>
+      <p class="small italic" style="margin-top:8px;">Tap a day for the full entry.</p>
+    </div>
+  `;
+}
+
+/** Sum of programmed minutes on a day. Used as the small caption inside each
+ *  calendar cell. We use programmed (not all activity) so a day with daily
+ *  housework doesn't read as a "30 min session" day. */
+function totalActivityMinutesOnDay(iso) {
+  return entriesOnDay(iso).activity
+    .filter(a => asBool(a.isProgrammed))
+    .reduce((s, a) => s + (safeNum(a.totalMinutes, 0) || 0), 0);
+}
+
+/** Cell tooltip — short, one-line summary of the day's activity. */
+function calendarCellTooltip(iso) {
+  const e = entriesOnDay(iso);
+  const st = dayState(iso);
+  if (st === 'rest') return `${fmtDayHeading(iso)} — planned rest day`;
+  const acts = e.activity.filter(a => a.category !== 'rest');
+  if (acts.length === 0) return `${fmtDayHeading(iso)} — no activity`;
+  const parts = acts.map(a => {
+    const cat = ACTIVITY_CATEGORIES[a.category];
+    const label = cat ? cat.label : a.category;
+    return a.totalMinutes ? `${label} ${a.totalMinutes}m` : label;
+  });
+  return `${fmtDayHeading(iso)} — ${parts.join(', ')}`;
+}
 
 /** Common chart options — calm theme, tap-friendly tooltips. */
 function chartTheme() {
@@ -1988,6 +2374,20 @@ function drawHrChart() {
   });
   const hrData = days.map(d => hrByDay.has(d) ? hrByDay.get(d) : null);
 
+  // Recovery HR — best (lowest) post-session pulse per day. Lower = faster
+  // recovery, so when this trends down the fitness gain is real. Treat 0 as
+  // "not measured" (defensive — earlier versions stored 0 on blank submit).
+  const recByDay = new Map();
+  state.activity.forEach(a => {
+    if (!a.date || a.recoveryHR == null || a.recoveryHR === '') return;
+    const v = safeNum(a.recoveryHR);
+    if (v === null || v <= 0) return;
+    const cur = recByDay.get(a.date);
+    if (cur == null || v < cur) recByDay.set(a.date, v);
+  });
+  const recData = days.map(d => recByDay.has(d) ? recByDay.get(d) : null);
+  const hasRecovery = recData.some(v => v != null);
+
   // EKG events grouped by day
   const ekgByDay = new Map();
   state.ekg.forEach(e => {
@@ -2027,7 +2427,7 @@ function drawHrChart() {
     };
   }).filter(Boolean);
 
-  if (hrData.every(v => v == null) && ekgDatasets.length === 0) {
+  if (hrData.every(v => v == null) && !hasRecovery && ekgDatasets.length === 0) {
     emptyHtml('ch-hr', 'No heart rate data yet.');
     return;
   }
@@ -2042,19 +2442,40 @@ function drawHrChart() {
         {
           label: 'Resting HR',
           data: hrData,
-          borderColor: t.accent,
-          backgroundColor: t.accent + '22',
+          borderColor: t.accent + (chartsShowRolling ? '55' : ''),
+          backgroundColor: t.accent + (chartsShowRolling ? '11' : '22'),
           borderWidth: dens.line,
           tension: 0.35,
           cubicInterpolationMode: 'monotone',
           spanGaps: true,
-          pointRadius: dens.point,
+          pointRadius: chartsShowRolling ? 0 : dens.point,
           pointHoverRadius: dens.hover,
           pointBackgroundColor: t.accent + 'cc',
           pointBorderColor: t.accent,
           pointBorderWidth: 1.5,
           pointHoverBorderWidth: 2
         },
+        ...(hasRecovery ? [{
+          label: 'Recovery HR (1 min post)',
+          data: recData,
+          borderColor: '#b06b8c' + (chartsShowRolling ? '55' : ''),
+          backgroundColor: '#b06b8c' + (chartsShowRolling ? '11' : '22'),
+          borderWidth: dens.line,
+          borderDash: [4, 4],
+          tension: 0.35,
+          cubicInterpolationMode: 'monotone',
+          spanGaps: true,
+          pointRadius: chartsShowRolling ? 0 : dens.point,
+          pointHoverRadius: dens.hover,
+          pointBackgroundColor: '#b06b8ccc',
+          pointBorderColor: '#b06b8c',
+          pointBorderWidth: 1.5,
+          pointHoverBorderWidth: 2
+        }] : []),
+        ...(chartsShowRolling ? [
+          rollingOverlayDataset(t, 'Resting', hrData, t.accent),
+          ...(hasRecovery ? [rollingOverlayDataset(t, 'Recovery', recData, '#b06b8c')] : [])
+        ] : []),
         ...ekgDatasets
       ]
     },
@@ -2197,19 +2618,20 @@ function drawBorgChart() {
       datasets: [{
         label: 'Avg Borg',
         data,
-        borderColor: t.accent,
-        backgroundColor: t.accent + '22',
+        borderColor: t.accent + (chartsShowRolling ? '55' : ''),
+        backgroundColor: t.accent + (chartsShowRolling ? '11' : '22'),
         borderWidth: dens.line,
         tension: 0.35,
         cubicInterpolationMode: 'monotone',
         spanGaps: true,
-        pointRadius: dens.point,
+        pointRadius: chartsShowRolling ? 0 : dens.point,
         pointHoverRadius: dens.hover,
         pointBackgroundColor: t.accent + 'cc',
         pointBorderColor: t.accent,
         pointBorderWidth: 1.5,
         pointHoverBorderWidth: 2
-      }]
+      },
+      ...(chartsShowRolling ? [rollingOverlayDataset(t, 'Borg', data, t.accent)] : [])]
     },
     options: commonOpts(t, {
       scales: {
@@ -2340,19 +2762,20 @@ function drawWeightChart() {
       datasets: [{
         label: 'Morning weight',
         data,
-        borderColor: t.accent,
-        backgroundColor: t.accent + '22',
+        borderColor: t.accent + (chartsShowRolling ? '55' : ''),
+        backgroundColor: t.accent + (chartsShowRolling ? '11' : '22'),
         borderWidth: dens.line,
         tension: 0.35,
         cubicInterpolationMode: 'monotone',
         spanGaps: true,
-        pointRadius: dens.point,
+        pointRadius: chartsShowRolling ? 0 : dens.point,
         pointHoverRadius: dens.hover,
         pointBackgroundColor: t.accent + 'cc',
         pointBorderColor: t.accent,
         pointBorderWidth: 1.5,
         pointHoverBorderWidth: 2
-      }]
+      },
+      ...(chartsShowRolling ? [rollingOverlayDataset(t, 'weight', data, t.accent)] : [])]
     },
     options: commonOpts(t, {
       scales: {
@@ -2386,7 +2809,12 @@ function renderWeeklySnapshotPanel() {
   return `
     <!-- ───── Narrative card — the headline summary ───── -->
     <div class="card narrative-card">
-      <div class="narrative-eyebrow eyebrow">${escapeHtml(fmtWeekLabel(thisMon))}</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <div class="narrative-eyebrow eyebrow">${escapeHtml(fmtWeekLabel(thisMon))}</div>
+        <button class="narrative-print" onclick="openPrintView('${thisMon}')" title="Open the printable weekly summary">
+          Weekly Summary
+        </button>
+      </div>
 
       <div class="narrative-hero">
         <div class="hero-num">${narrative.heroNum}</div>
@@ -2490,7 +2918,13 @@ function buildWeekNarrative(thisWeek, lastWeek) {
     out.heroNum = '–';
   }
 
-  if (l && l.daysActive > 0) {
+  // Week-over-week comparison only makes sense once enough of this week
+  // has elapsed. Mon–Wed of a fresh week always shows a "deficit" because
+  // most days haven't happened yet — that's misleading, not informative.
+  // Wait until Thursday (or Sunday, the last day of our Mon-start week).
+  const dow = dayOfWeek(todayISO());      // Sun=0 Mon=1 ... Sat=6
+  const weekIsMature = dow === 0 || dow >= 4;
+  if (weekIsMature && l && l.daysActive > 0) {
     const diff = t.daysActive - l.daysActive;
     if (diff > 0)      out.heroSub = `Up ${diff} from last week.`;
     else if (diff < 0) out.heroSub = `Down ${Math.abs(diff)} from last week — that's okay.`;
@@ -2500,6 +2934,9 @@ function buildWeekNarrative(thisWeek, lastWeek) {
   // Trend rows — only show what's been logged this week
   const trendRow = (label, value, delta, deltaClass) => out.trends.push({ label, value, delta, deltaClass });
   const arrow = (a, b, unit, betterDirection = 'up') => {
+    // Skip last-week comparisons early in a fresh week — same reasoning as
+    // the heroSub gate above. Show this week's number, no delta.
+    if (!weekIsMature) return { delta: '', cls: '' };
     if (b === null || b === undefined || b === 0) return { delta: '', cls: '' };
     const d = a - b;
     if (d === 0) return { delta: 'same as last week', cls: 'flat' };
@@ -2520,7 +2957,7 @@ function buildWeekNarrative(thisWeek, lastWeek) {
   if (t.typicalBorg !== null && t.typicalBorg !== undefined) {
     // Lower Borg for similar work = good
     let delta = '', cls = '';
-    if (l && l.typicalBorg !== null && l.typicalBorg !== undefined) {
+    if (weekIsMature && l && l.typicalBorg !== null && l.typicalBorg !== undefined) {
       const d = Math.round((t.typicalBorg - l.typicalBorg) * 10) / 10;
       if (d === 0) { delta = 'same as last week'; cls = 'flat'; }
       else if (d < 0 && t.totalProgrammed >= (l.totalProgrammed || 0) * 0.85) {
@@ -2537,19 +2974,22 @@ function buildWeekNarrative(thisWeek, lastWeek) {
     trendRow('Morning resting HR', `${t.hrRange[0]}–${t.hrRange[1]} bpm`, '', '');
   }
 
-  // Notes — short, plain-language observations.
+  // Notes — short, plain-language observations. Comparison notes only fire
+  // once enough of the week has elapsed; standalone notes (symptoms, empty
+  // week) still appear immediately because they describe what's happening
+  // right now, not how it stacks up against last week.
   const notes = [];
-  if (l && t.longestContinuous > l.longestContinuous && l.longestContinuous > 0) {
+  if (weekIsMature && l && t.longestContinuous > l.longestContinuous && l.longestContinuous > 0) {
     notes.push(`Endurance is building — your longest continuous activity is up ${t.longestContinuous - l.longestContinuous} minutes from last week.`);
   }
-  if (l && t.typicalBorg !== null && l.typicalBorg !== null &&
+  if (weekIsMature && l && t.typicalBorg !== null && l.typicalBorg !== null &&
       t.typicalBorg < l.typicalBorg && t.totalProgrammed >= (l.totalProgrammed || 0) * 0.85) {
     notes.push("Same work, less effort — that's real fitness gain.");
   }
   if (t.anySymptoms) {
     notes.push("Some symptoms were noted this week — they're listed below in the day-by-day section.");
   }
-  if (t.daysActive >= 5 && (!l || l.daysActive < t.daysActive)) {
+  if (weekIsMature && t.daysActive >= 5 && (!l || l.daysActive < t.daysActive)) {
     notes.push('Strong consistency this week. Keep the rhythm.');
   }
   if (t.daysActive === 0) {
@@ -2700,13 +3140,26 @@ function renderSettings() {
       <label class="field" id="cfg-weight-baseline-wrap" style="${c.weightTrackingEnabled ? '' : 'display:none'}">
         <span class="lbl">Your usual weight right now (lb)</span>
         <input type="number" id="cfg-weight-baseline" value="${c.weightBaselineLb || ''}" step="0.1" placeholder="set once when turning this on" />
-        <span class="help">Used only to detect the plan's check-in thresholds (~2–3 lb/day, ~5 lb/week).</span>
+        <span class="help">Used only to detect the check-in thresholds below.</span>
       </label>
+      <div id="cfg-weight-thresholds-wrap" style="${c.weightTrackingEnabled ? '' : 'display:none'}">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+          <label class="field">
+            <span class="lbl">Weight fluctuation (per day, lb)</span>
+            <input type="number" id="cfg-th-day" value="${(c.thresholds && c.thresholds.weightGainPerDayLb != null) ? c.thresholds.weightGainPerDayLb : 2.5}" step="0.1" />
+          </label>
+          <label class="field">
+            <span class="lbl">Weight fluctuation (per week, lb)</span>
+            <input type="number" id="cfg-th-week" value="${(c.thresholds && c.thresholds.weightGainPerWeekLb != null) ? c.thresholds.weightGainPerWeekLb : 5}" step="0.1" />
+          </label>
+        </div>
+        <p class="small italic" style="margin-top:6px;">The app flags a check-in if morning weight rises this much over a day or a week.</p>
+      </div>
     </div>
 
     <div class="card">
       <h4 style="margin-top:0;">Your doctor's ranges</h4>
-      <p class="small">All optional. Reminders only fire on fields you've entered. Never used as diagnosis.</p>
+      <p class="small">All optional. Reminders only fire on fields you've entered, and only when the most recent reading is out of range. Never used as diagnosis.</p>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <label class="field">
           <span class="lbl">HR floor</span>
@@ -2717,7 +3170,30 @@ function renderSettings() {
           <input type="number" id="cfg-hr-ceiling" value="${c.doctorRanges.hrCeiling || ''}" />
         </label>
       </div>
-      <p class="small italic">Blood-sugar ranges from your doctor can be added here in a later update; for now the app just charts what you log.</p>
+
+      <h4 style="margin-top:18px;">Blood sugar (mg/dL)</h4>
+      ${[
+        ['fasting',  'Fasting',   'bsFasting'],
+        ['postMeal', 'Post-meal', 'bsPostMeal'],
+        ['bedtime',  'Bedtime',   'bsBedtime']
+      ].map(([slug, label, key]) => {
+        const rng = (c.doctorRanges && c.doctorRanges[key]) || { low: null, high: null };
+        return `
+        <div style="margin-top:8px;">
+          <div class="small" style="margin-bottom:4px;">${label}</div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <label class="field">
+              <span class="lbl">Low</span>
+              <input type="number" id="cfg-bs-${slug}-low" value="${rng.low ?? ''}" />
+            </label>
+            <label class="field">
+              <span class="lbl">High</span>
+              <input type="number" id="cfg-bs-${slug}-high" value="${rng.high ?? ''}" />
+            </label>
+          </div>
+        </div>
+        `;
+      }).join('')}
     </div>
 
     <div class="card">
@@ -2780,14 +3256,19 @@ function renderSettings() {
     <div class="spacer-lg"></div>
   `;
 
-  // Live toggle for weight baseline visibility
+  // Live toggle for weight baseline + threshold visibility
   document.getElementById('cfg-weight-toggle').addEventListener('change', e => {
-    document.getElementById('cfg-weight-baseline-wrap').style.display = e.target.checked ? '' : 'none';
+    const show = e.target.checked ? '' : 'none';
+    document.getElementById('cfg-weight-baseline-wrap').style.display = show;
+    const thWrap = document.getElementById('cfg-weight-thresholds-wrap');
+    if (thWrap) thWrap.style.display = show;
   });
 }
 
 function saveSettings() {
   const c = state.config;
+  const dayTh = safeNum(document.getElementById('cfg-th-day').value);
+  const weekTh = safeNum(document.getElementById('cfg-th-week').value);
   const newCfg = {
     currentStage: Number(document.getElementById('cfg-stage').value),
     weeklyPlan: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].reduce((o, d) => {
@@ -2800,10 +3281,27 @@ function saveSettings() {
     medsTrackingEnabled: document.getElementById('cfg-meds-toggle').checked,
     weightTrackingEnabled: document.getElementById('cfg-weight-toggle').checked,
     weightBaselineLb: safeNum(document.getElementById('cfg-weight-baseline').value),
+    thresholds: {
+      ...c.thresholds,
+      weightGainPerDayLb: dayTh != null ? dayTh : PLAN_THRESHOLDS.weightGainPerDayLb,
+      weightGainPerWeekLb: weekTh != null ? weekTh : PLAN_THRESHOLDS.weightGainPerWeekLb
+    },
     doctorRanges: {
       ...c.doctorRanges,
       hrFloor: safeNum(document.getElementById('cfg-hr-floor').value),
-      hrCeiling: safeNum(document.getElementById('cfg-hr-ceiling').value)
+      hrCeiling: safeNum(document.getElementById('cfg-hr-ceiling').value),
+      bsFasting: {
+        low:  safeNum(document.getElementById('cfg-bs-fasting-low').value),
+        high: safeNum(document.getElementById('cfg-bs-fasting-high').value)
+      },
+      bsPostMeal: {
+        low:  safeNum(document.getElementById('cfg-bs-postMeal-low').value),
+        high: safeNum(document.getElementById('cfg-bs-postMeal-high').value)
+      },
+      bsBedtime: {
+        low:  safeNum(document.getElementById('cfg-bs-bedtime-low').value),
+        high: safeNum(document.getElementById('cfg-bs-bedtime-high').value)
+      }
     },
     theme: document.getElementById('cfg-theme').value,
     textSize: document.getElementById('cfg-textsize').value,
@@ -2870,7 +3368,7 @@ function downloadJson() {
 function downloadCsv() {
   // One CSV per type. Stagger downloads ~300ms apart so browsers don't
   // treat the rapid succession as a popup-spam pattern and block them.
-  const types = ['vitals','activity','ekg','bloodSugar','stageDecisions'];
+  const types = ['vitals','activity','ekg','bloodSugar','stageDecisions','doctorNotes'];
   types.forEach((type, i) => {
     const rows = state[type];
     if (rows.length === 0) return;
@@ -3103,11 +3601,11 @@ function loadDemoData() {
 }
 
 function clearDemoData() {
-  const demoCount = ['vitals','activity','ekg','bloodSugar','stageDecisions']
+  const demoCount = ['vitals','activity','ekg','bloodSugar','stageDecisions','doctorNotes']
     .reduce((s, t) => s + state[t].filter(r => r._demo).length, 0);
   if (demoCount === 0) { alert('No demo data to clear.'); return; }
   if (!confirm(`Remove ${demoCount} demo entries? Real entries you've logged will be kept.`)) return;
-  ['vitals','activity','ekg','bloodSugar','stageDecisions'].forEach(t => {
+  ['vitals','activity','ekg','bloodSugar','stageDecisions','doctorNotes'].forEach(t => {
     state[t] = state[t].filter(r => !r._demo);
   });
   const demoRest = state.config._demoRestDays || [];
@@ -3126,7 +3624,7 @@ function importJson(event) {
     try {
       const data = JSON.parse(e.target.result);
       if (!confirm('Replace all current entries with the backup file? Local entries will be overwritten.')) return;
-      ['vitals','activity','ekg','bloodSugar','stageDecisions'].forEach(t => {
+      ['vitals','activity','ekg','bloodSugar','stageDecisions','doctorNotes'].forEach(t => {
         if (Array.isArray(data[t])) state[t] = data[t];
       });
       if (data.config) state.config = { ...DEFAULT_CONFIG, ...data.config, sheetUrl: state.config.sheetUrl };
@@ -3247,6 +3745,17 @@ function openPrintView(weekStartIso) {
     ${state.config.medications && state.config.medications.length ? `
       <h3>Medications</h3>
       <ul>${state.config.medications.map(m => `<li>${escapeHtml(m)}</li>`).join('')}</ul>
+    ` : ''}
+
+    ${state.doctorNotes && state.doctorNotes.length ? `
+      <h3>Questions / notes for you</h3>
+      <ul>
+        ${state.doctorNotes
+          .slice()
+          .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+          .map(n => `<li><strong>${escapeHtml(fmtDate(n.date))}</strong> — ${escapeHtml(n.body || '')}</li>`)
+          .join('')}
+      </ul>
     ` : ''}
 
     <div class="spacer-lg no-print"></div>
@@ -3638,10 +4147,18 @@ const SAFETY = {
 };
 
 /* The plan's own gentle check-in thresholds (used for soft reminders) */
+/* Fallback defaults — real values live in state.config.thresholds
+ * (set in DEFAULT_CONFIG below) so they're patient-tunable from Settings.
+ * Logic still flags gains only; the Settings input is labeled "fluctuation"
+ * because that's the word she uses, but the math compares signed delta. */
 const PLAN_THRESHOLDS = {
   weightGainPerDayLb: 2.5,        // "~2–3 lb in a day"
   weightGainPerWeekLb: 5,         // "~5 lb in a week"
 };
+
+function thresholds() {
+  return { ...PLAN_THRESHOLDS, ...(state.config.thresholds || {}) };
+}
 
 /* ─── 2. State + LocalStorage ─────────────────────────────────────
    Single root state object persisted under one key. Local is the
@@ -3660,6 +4177,12 @@ const DEFAULT_CONFIG = {
     bsPostMeal: { low: null, high: null },
     bsBedtime: { low: null, high: null }
   },
+  thresholds: {
+    // Labeled "fluctuation" in Settings; math is gain-only. Defaults
+    // mirror PLAN_THRESHOLDS so existing installs behave identically.
+    weightGainPerDayLb: 2.5,
+    weightGainPerWeekLb: 5
+  },
   weightTrackingEnabled: false,
   weightBaselineLb: null,
   medsTrackingEnabled: false,
@@ -3667,15 +4190,20 @@ const DEFAULT_CONFIG = {
   textSize: 'normal',     // normal | large | xlarge
   firstRunComplete: false,
   restDays: [],           // array of YYYY-MM-DD she has marked as planned rest
-  sheetUrl: ''
+  sheetUrl: '',
+  lastMondayPromptWeek: ''  // ISO Monday of the most recent week we showed the prompt
 };
 
-let state = {
+// `var` (not `let`) so the binding is reachable on `window` — tests.html
+// loads this file in an iframe and injects fixture state via `app.state = ...`.
+var state = {
   vitals: [],
   activity: [],
   ekg: [],
   bloodSugar: [],
   stageDecisions: [],
+  doctorNotes: [],   // free-form questions/notes for the cardiologist;
+                     // excluded from Today/Log lists + Trends, included in print
   config: { ...DEFAULT_CONFIG },
   unsynced: [],
   lastSyncAt: null
@@ -3835,7 +4363,7 @@ async function pullFromSheet() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (!data.ok) throw new Error(data.error);
-    ['vitals','activity','ekg','bloodSugar','stageDecisions'].forEach(type => {
+    ['vitals','activity','ekg','bloodSugar','stageDecisions','doctorNotes'].forEach(type => {
       const remote = data[type] || [];
       const byId = new Map(state[type].map(r => [r.id, r]));
       remote.forEach(r => { if (r.id && !byId.has(r.id)) byId.set(r.id, r); });
@@ -4090,6 +4618,11 @@ function openActivityForm(prefill) {
       <div class="field">
         ${renderToggleRow('talkTestOK', 'Could hold a normal conversation throughout', r.talkTestOK !== false)}
       </div>
+      <label class="field">
+        <span class="lbl">Recovery HR (1 min after, optional)</span>
+        <input type="number" inputmode="numeric" id="f-recovery-hr" value="${escapeHtml(r.recoveryHR ?? '')}" placeholder="pulse one minute after stopping" />
+        <span class="help">A useful cardiac signal — faster recovery over time means real fitness gain.</span>
+      </label>
       <div class="field">
         <span class="lbl">How did the session feel?</span>
         <div class="feeling-row" id="f-feeling-row">
@@ -4187,6 +4720,12 @@ function saveActivityForm(existingId) {
     restBetweenMin: isRest ? null : safeNum((document.getElementById('f-rest')||{}).value),
     borg: borgEl ? Number(borgEl.dataset.borg) : null,
     talkTestOK: catDef.programmed ? toggleVal('talkTestOK') : null,
+    recoveryHR: catDef.programmed ? (() => {
+      const raw = ((document.getElementById('f-recovery-hr')||{}).value || '').trim();
+      if (raw === '') return null;
+      const n = Number(raw);
+      return Number.isFinite(n) && n > 0 ? n : null;
+    })() : null,
     feeling: feelingEl ? Number(feelingEl.dataset.feeling) : null,
     dizzyDuring: catDef.programmed ? toggleVal('dizzyDuring') : false,
     swellingDuring: catDef.programmed ? toggleVal('swellingDuring') : false,
@@ -4494,6 +5033,117 @@ function openStageDecision(weekStartIso) {
   });
 }
 
+/* ─── Monday prompt — once per ISO week, combines weekly goal + stage decision.
+ *    Fires on first open Mon–Sun if not yet shown for that week's Monday,
+ *    so missing Monday doesn't skip the whole week. Tracked in
+ *    state.config.lastMondayPromptWeek. */
+
+function mondayPromptDue() {
+  if (!state.config.firstRunComplete) return false;
+  const thisMon = mondayOf(todayISO());
+  return (state.config.lastMondayPromptWeek || '') !== thisMon;
+}
+
+function dismissMondayPrompt() {
+  setConfig({ lastMondayPromptWeek: mondayOf(todayISO()) });
+}
+
+function openMondayPrompt() {
+  const thisMon = mondayOf(todayISO());
+  const stage = STAGES[state.config.currentStage] || STAGES[0];
+  const existing = state.stageDecisions.find(d => d.weekStartDate === thisMon);
+  const ticked = existing
+    ? (Array.isArray(existing.criteriaTicked) ? existing.criteriaTicked : safeParseArray(existing.criteriaTicked))
+    : new Array(stage.advance.length).fill(false);
+
+  const html = `
+    <div class="modal-head">
+      <h2>This week · ${escapeHtml(fmtWeekRange(thisMon))}</h2>
+      <button class="icon-btn" onclick="closeMondayPrompt()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="small" style="margin-top:0;">A quick start-of-week check-in. Both parts are optional — fill what's useful.</p>
+
+      <h4>This week's goal</h4>
+      <label class="field">
+        <input type="text" id="f-mp-goal" value="${escapeHtml(state.config.weeklyGoal || '')}" placeholder="e.g., 3 pool days · 1 strength day" />
+        <span class="help">Shown on the Today screen.</span>
+      </label>
+
+      <h4 style="margin-top:18px;">Stage decision</h4>
+      <div class="card soft" style="margin-bottom:10px;">
+        <strong>Currently:</strong> Stage ${stage.n} — ${escapeHtml(stage.title)}
+      </div>
+      <p class="small">Tick the "ready to advance" criteria you've actually met this week.</p>
+      <div id="f-criteria">
+        ${stage.advance.map((c, i) => renderToggleRow('cr-' + i, c, ticked[i])).join('')}
+      </div>
+
+      <p class="small" style="margin-top:14px;">Your choice (pick one if you're recording a decision this week):</p>
+      <div class="chips" id="f-choice">
+        ${[
+          ['advance','Advance to next stage'],
+          ['hold','Hold (most common)'],
+          ['dropBack','Drop back one stage']
+        ].map(([k, lbl]) => `
+          <button type="button" class="chip ${existing && existing.choice === k ? 'selected' : ''}" data-choice="${k}">${escapeHtml(lbl)}</button>
+        `).join('')}
+      </div>
+
+      <label class="field" style="margin-top:14px;">
+        <span class="lbl">Note (optional — context for the doctor)</span>
+        <textarea id="f-note" rows="2">${escapeHtml(existing ? (existing.note || '') : '')}</textarea>
+      </label>
+
+      <div class="card soft small italic" style="margin-top:14px;">
+        The app records what you choose. It never auto-advances or suggests a choice.
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeMondayPrompt()">Skip for now</button>
+      <button class="btn primary" onclick="saveMondayPrompt()">Save</button>
+    </div>
+  `;
+  openModal(html, { full: false });
+  document.querySelectorAll('#f-choice .chip').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('#f-choice .chip').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+    });
+  });
+}
+
+function closeMondayPrompt() {
+  dismissMondayPrompt();
+  closeModal();
+}
+
+function saveMondayPrompt() {
+  const thisMon = mondayOf(todayISO());
+  const stage = STAGES[state.config.currentStage] || STAGES[0];
+  // Goal — always write (empty string clears it intentionally)
+  const goal = document.getElementById('f-mp-goal').value.trim();
+  setConfig({ weeklyGoal: goal });
+  // Stage decision — only write if she picked a choice; otherwise skip it
+  const sel = document.querySelector('#f-choice .chip.selected');
+  if (sel) {
+    const ticked = stage.advance.map((_, i) => toggleVal('cr-' + i));
+    const existing = state.stageDecisions.find(d => d.weekStartDate === thisMon);
+    upsertEntry('stageDecisions', {
+      id: existing ? existing.id : undefined,
+      weekStartDate: thisMon,
+      stage: state.config.currentStage,
+      choice: sel.dataset.choice,
+      criteriaTicked: ticked,
+      note: document.getElementById('f-note').value.trim()
+    });
+  }
+  dismissMondayPrompt();
+  closeModal();
+  flushSync();
+  renderActiveView();
+}
+
 function saveStageDecision(weekStartIso, existingId) {
   const stage = STAGES[state.config.currentStage] || STAGES[0];
   const ticked = stage.advance.map((_, i) => toggleVal('cr-' + i));
@@ -4674,13 +5324,33 @@ function renderActiveView() {
 /* ─── 9. Init ───────────────────────────────────────────────────── */
 
 function init() {
+  // Test-mode short-circuit: tests.html loads this file in a hidden iframe
+  // with `?test=1` so it can call the helper functions against fixture data
+  // without rendering, registering the SW, or showing first-run/Monday modals.
+  if (/[?&]test=1\b/.test(location.search) || window.__forceTestMode) {
+    // Top-level `const` bindings aren't on window in a classic script —
+    // re-export the ones tests need so the parent page can read them.
+    window.DEFAULT_CONFIG = DEFAULT_CONFIG;
+    window.STAGES = STAGES;
+    window.PLAN_THRESHOLDS = PLAN_THRESHOLDS;
+    window.__cgTestReady = true;
+    return;
+  }
   loadState();
   applyAppearance();
+
+  // If a prior version registered a service worker, unregister it so this
+  // build stops serving cached files. Browsers keep the SW around forever
+  // otherwise, which would silently mask app updates.
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister())).catch(() => {});
+  }
 
   document.querySelectorAll('#bottom-tabs button').forEach(b => {
     b.addEventListener('click', () => switchView(b.dataset.view));
   });
   document.getElementById('open-settings').addEventListener('click', () => switchView('settings'));
+  document.getElementById('quick-log').addEventListener('click', openQuickLogPicker);
 
   window.addEventListener('scroll', () => {
     const tb = document.getElementById('top-bar');
@@ -4698,6 +5368,9 @@ function init() {
 
   if (!state.config.firstRunComplete) {
     openFirstRun();
+  } else if (mondayPromptDue()) {
+    // Defer so the Today view paints first; the modal then sits on top
+    setTimeout(openMondayPrompt, 0);
   }
 
   renderActiveView();
