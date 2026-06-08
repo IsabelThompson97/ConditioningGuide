@@ -1937,6 +1937,385 @@ function renderGuide() {
     <div class="spacer-lg"></div>
   `;
 }
+
+/* ─── 5f. Settings view ─────────────────────────────────────────── */
+
+function renderSettings() {
+  const root = document.getElementById('view-settings');
+  const c = state.config;
+  const medList = (c.medications || []).join('\n');
+  root.innerHTML = `
+    <h2 class="view-title">Settings</h2>
+
+    <div class="card">
+      <h4 style="margin-top:0;">Current stage</h4>
+      <label class="field">
+        <select id="cfg-stage">
+          ${STAGES.map(s => `<option value="${s.n}" ${c.currentStage === s.n ? 'selected' : ''}>Stage ${s.n} — ${escapeHtml(s.title)}</option>`).join('')}
+        </select>
+        <span class="help">She chooses — the app never auto-advances. Make weekly decisions from the Trends → Weekly snapshot tab.</span>
+      </label>
+    </div>
+
+    <div class="card">
+      <h4 style="margin-top:0;">Weekly plan</h4>
+      <p class="small">What kind of day each is. Edit to match her routine.</p>
+      ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `
+        <label class="field">
+          <span class="lbl">${d}</span>
+          <input type="text" id="cfg-plan-${d}" value="${escapeHtml(c.weeklyPlan[d] || '')}" />
+        </label>
+      `).join('')}
+    </div>
+
+    <div class="card">
+      <h4 style="margin-top:0;">Weekly goal</h4>
+      <label class="field">
+        <input type="text" id="cfg-goal" value="${escapeHtml(c.weeklyGoal || '')}" placeholder="e.g., 3 pool days · 1 strength day" />
+        <span class="help">Shown on the Today screen.</span>
+      </label>
+    </div>
+
+    <div class="card">
+      <h4 style="margin-top:0;">Medications</h4>
+      <label class="field">
+        <textarea id="cfg-meds" rows="4" placeholder="One per line">${escapeHtml(medList)}</textarea>
+        <span class="help">Used for the optional "took meds today" toggle on daily vitals.</span>
+      </label>
+      <label class="toggle">
+        <span class="lbl">Show "took meds today" on the vitals form</span>
+        <input type="checkbox" id="cfg-meds-toggle" ${c.medsTrackingEnabled ? 'checked' : ''} />
+        <span class="switch"></span>
+      </label>
+    </div>
+
+    <div class="card">
+      <h4 style="margin-top:0;">Weight tracking</h4>
+      <label class="toggle">
+        <span class="lbl">Track morning weight</span>
+        <input type="checkbox" id="cfg-weight-toggle" ${c.weightTrackingEnabled ? 'checked' : ''} />
+        <span class="switch"></span>
+      </label>
+      <label class="field" id="cfg-weight-baseline-wrap" style="${c.weightTrackingEnabled ? '' : 'display:none'}">
+        <span class="lbl">Her usual weight right now (lb)</span>
+        <input type="number" id="cfg-weight-baseline" value="${c.weightBaselineLb || ''}" step="0.1" placeholder="set once when turning this on" />
+        <span class="help">Used only to detect the plan's check-in thresholds (~2–3 lb/day, ~5 lb/week).</span>
+      </label>
+    </div>
+
+    <div class="card">
+      <h4 style="margin-top:0;">Her doctor's ranges</h4>
+      <p class="small">All optional. Reminders only fire on fields she's entered. Never used as diagnosis.</p>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <label class="field">
+          <span class="lbl">HR floor</span>
+          <input type="number" id="cfg-hr-floor" value="${c.doctorRanges.hrFloor || ''}" />
+        </label>
+        <label class="field">
+          <span class="lbl">HR ceiling</span>
+          <input type="number" id="cfg-hr-ceiling" value="${c.doctorRanges.hrCeiling || ''}" />
+        </label>
+      </div>
+      <p class="small italic">Blood-sugar ranges from her doctor can be added here in a later update; for now the app just charts what she logs.</p>
+    </div>
+
+    <div class="card">
+      <h4 style="margin-top:0;">Appearance</h4>
+      <label class="field">
+        <span class="lbl">Theme</span>
+        <select id="cfg-theme">
+          <option value="warm" ${c.theme==='warm'?'selected':''}>Warm paper (default)</option>
+          <option value="soft" ${c.theme==='soft'?'selected':''}>Soft white</option>
+          <option value="contrast" ${c.theme==='contrast'?'selected':''}>High contrast</option>
+          <option value="dark" ${c.theme==='dark'?'selected':''}>Dark mode</option>
+        </select>
+      </label>
+      <label class="field">
+        <span class="lbl">Text size</span>
+        <select id="cfg-textsize">
+          <option value="normal" ${c.textSize==='normal'?'selected':''}>Normal</option>
+          <option value="large" ${c.textSize==='large'?'selected':''}>Large</option>
+          <option value="xlarge" ${c.textSize==='xlarge'?'selected':''}>Extra large</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="card">
+      <h4 style="margin-top:0;">Google Sheet sync</h4>
+      <label class="field">
+        <span class="lbl">Apps Script web-app URL</span>
+        <input type="url" id="cfg-sheet-url" value="${escapeHtml(c.sheetUrl || '')}" placeholder="https://script.google.com/macros/s/.../exec" />
+        <span class="help">Ends in <code>/exec</code>. See SETUP.md for how to deploy.</span>
+      </label>
+      <div class="btn-row">
+        <button class="btn" onclick="testSync()">Test connection</button>
+        <button class="btn" onclick="manualPull()">Pull from sheet</button>
+        <button class="btn primary" onclick="flushSync()">Sync now</button>
+      </div>
+      <div id="sync-test-result" class="small" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="card">
+      <h4 style="margin-top:0;">Export &amp; backup</h4>
+      <div class="btn-row">
+        <button class="btn" onclick="downloadJson()">Download JSON</button>
+        <button class="btn" onclick="downloadCsv()">Download CSV</button>
+        <button class="btn" onclick="document.getElementById('import-file').click()">Import JSON</button>
+        <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importJson(event)" />
+      </div>
+      <p class="small" style="margin-top:8px;">JSON is the full backup. CSV gives one file per tab, suitable for spreadsheets.</p>
+    </div>
+
+    <div class="btn-row right" style="margin-top:18px;">
+      <button class="btn primary" onclick="saveSettings()">Save settings</button>
+    </div>
+
+    <div class="spacer-lg"></div>
+  `;
+
+  // Live toggle for weight baseline visibility
+  document.getElementById('cfg-weight-toggle').addEventListener('change', e => {
+    document.getElementById('cfg-weight-baseline-wrap').style.display = e.target.checked ? '' : 'none';
+  });
+}
+
+function saveSettings() {
+  const c = state.config;
+  const newCfg = {
+    currentStage: Number(document.getElementById('cfg-stage').value),
+    weeklyPlan: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].reduce((o, d) => {
+      o[d] = document.getElementById('cfg-plan-' + d).value;
+      return o;
+    }, {}),
+    weeklyGoal: document.getElementById('cfg-goal').value.trim(),
+    medications: document.getElementById('cfg-meds').value
+      .split('\n').map(s => s.trim()).filter(Boolean),
+    medsTrackingEnabled: document.getElementById('cfg-meds-toggle').checked,
+    weightTrackingEnabled: document.getElementById('cfg-weight-toggle').checked,
+    weightBaselineLb: safeNum(document.getElementById('cfg-weight-baseline').value),
+    doctorRanges: {
+      ...c.doctorRanges,
+      hrFloor: safeNum(document.getElementById('cfg-hr-floor').value),
+      hrCeiling: safeNum(document.getElementById('cfg-hr-ceiling').value)
+    },
+    theme: document.getElementById('cfg-theme').value,
+    textSize: document.getElementById('cfg-textsize').value,
+    sheetUrl: document.getElementById('cfg-sheet-url').value.trim()
+  };
+  setConfig(newCfg);
+  applyAppearance();
+  switchView('today');
+}
+
+function applyAppearance() {
+  document.body.className = '';
+  if (state.config.theme && state.config.theme !== 'warm') {
+    document.body.classList.add('theme-' + state.config.theme);
+  }
+  if (state.config.textSize && state.config.textSize !== 'normal') {
+    document.body.classList.add('text-' + state.config.textSize);
+  }
+}
+
+async function testSync() {
+  const url = document.getElementById('cfg-sheet-url').value.trim();
+  const out = document.getElementById('sync-test-result');
+  if (!url) { out.textContent = 'Paste a URL first.'; return; }
+  out.textContent = 'Testing…';
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'ping' }),
+      redirect: 'follow'
+    });
+    const data = await res.json();
+    if (data.ok && data.pong) {
+      out.innerHTML = '<span style="color:var(--success)">✓ Connected.</span>';
+    } else {
+      out.innerHTML = '<span style="color:var(--signal-ink)">Got a response but it didn\'t look right: ' + escapeHtml(JSON.stringify(data)) + '</span>';
+    }
+  } catch (e) {
+    out.innerHTML = '<span style="color:var(--signal-ink)">Could not reach: ' + escapeHtml(e.message) + '</span>';
+  }
+}
+
+async function manualPull() {
+  const r = await pullFromSheet();
+  alert(r.ok ? 'Pulled latest from sheet.' : 'Pull failed: ' + r.error);
+  renderActiveView();
+}
+
+function downloadJson() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  triggerDownload(blob, `conditioning-backup-${todayISO()}.json`);
+}
+
+function downloadCsv() {
+  // One CSV per type, zipped via a simple text bundle (separate files would
+  // need a zip lib). Easier: download each separately, one click per file.
+  ['vitals','activity','ekg','bloodSugar','stageDecisions'].forEach(type => {
+    const rows = state[type];
+    if (rows.length === 0) return;
+    const headers = Array.from(new Set(rows.flatMap(r => Object.keys(r))));
+    const csv = [
+      headers.join(','),
+      ...rows.map(r => headers.map(h => csvCell(r[h])).join(','))
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    triggerDownload(blob, `conditioning-${type}-${todayISO()}.csv`);
+  });
+}
+function csvCell(v) {
+  if (v === null || v === undefined) return '';
+  const s = (typeof v === 'object') ? JSON.stringify(v) : String(v);
+  if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+function triggerDownload(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 100);
+}
+
+function importJson(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!confirm('Replace all current entries with the backup file? Local entries will be overwritten.')) return;
+      ['vitals','activity','ekg','bloodSugar','stageDecisions'].forEach(t => {
+        if (Array.isArray(data[t])) state[t] = data[t];
+      });
+      if (data.config) state.config = { ...DEFAULT_CONFIG, ...data.config, sheetUrl: state.config.sheetUrl };
+      saveState();
+      renderActiveView();
+      alert('Imported.');
+    } catch (e) {
+      alert('Could not read that file: ' + e.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ─── 5g. Print view (weekly summary for cardiologist) ──────────── */
+
+function renderPrint() {
+  // populated by openPrintView
+}
+
+function openPrintView(weekStartIso) {
+  const ws = weekStartIso || mondayOf(todayISO());
+  const snap = weekSnapshot(ws);
+  const days = Array.from({ length: 7 }, (_, i) => addDays(ws, i));
+  const root = document.getElementById('view-print');
+  const stage = STAGES[state.config.currentStage] || STAGES[0];
+
+  // Symptoms summary this week
+  const symptomEvents = [];
+  days.forEach(d => {
+    const e = entriesOnDay(d);
+    e.vitals.forEach(v => {
+      const sx = [];
+      if (asBool(v.dizzy)) sx.push('dizzy');
+      if (asBool(v.swelling)) sx.push('swelling');
+      if (asBool(v.breathing)) sx.push('breathing');
+      if (sx.length) symptomEvents.push({ when: 'AM ' + fmtDate(d), what: sx.join(', '), note: v.symptomNote });
+    });
+    e.activity.forEach(a => {
+      const sx = [];
+      if (asBool(a.dizzyDuring)) sx.push('dizzy');
+      if (asBool(a.swellingDuring)) sx.push('swelling');
+      if (asBool(a.breathingDuring)) sx.push('breathing');
+      if (sx.length) symptomEvents.push({ when: 'Session ' + fmtDate(d), what: sx.join(', '), note: a.symptomNoteDuring });
+    });
+    e.ekg.forEach(k => {
+      if (k.rhythm && k.rhythm !== 'normal') {
+        symptomEvents.push({ when: 'EKG ' + fmtDate(d) + ' ' + fmtTime(k.dateTime), what: 'rhythm: ' + k.rhythm + (asBool(k.symptomatic) ? ' (symptomatic)' : ''), note: k.note });
+      }
+    });
+  });
+
+  root.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;" class="no-print">
+      <button class="btn ghost" onclick="switchView('trends')">← back</button>
+      <button class="btn primary" onclick="window.print()">Print / Save as PDF</button>
+    </div>
+
+    <h2 class="view-title">Weekly summary</h2>
+    <p>Week of ${escapeHtml(fmtDate(ws))} — ${escapeHtml(fmtDate(addDays(ws, 6)))}</p>
+    <p>Stage ${stage.n} — ${escapeHtml(stage.title)} · Effort target Borg ${escapeHtml(stage.borg)}</p>
+
+    <h3>At a glance</h3>
+    <table class="snap-table">
+      <tr><td>Days kept up</td><td class="num">${snap.daysActive}</td></tr>
+      <tr><td>Longest continuous activity</td><td class="num">${snap.longestContinuous} min</td></tr>
+      <tr><td>Total programmed minutes</td><td class="num">${snap.totalProgrammed}</td></tr>
+      <tr><td>Typical Borg</td><td class="num">${snap.typicalBorg ?? '–'}</td></tr>
+      <tr><td>Morning resting HR range</td><td class="num">${snap.hrRange ? snap.hrRange[0]+'–'+snap.hrRange[1]+' bpm' : '–'}</td></tr>
+    </table>
+
+    <h3>Day by day</h3>
+    <table class="snap-table">
+      <thead><tr><th>Day</th><th>AM HR</th><th>Sessions</th><th>Longest</th><th>Total min</th><th>Symptoms</th></tr></thead>
+      <tbody>
+        ${days.map(d => {
+          const e = entriesOnDay(d);
+          const v = e.vitals[0];
+          const hr = v ? v.restingHR : '';
+          const prog = e.activity.filter(a => asBool(a.isProgrammed));
+          const longest = prog.length ? Math.max(...prog.map(a => safeNum(a.minutesPerRound, 0))) : '';
+          const tot = prog.reduce((s,a) => s + (safeNum(a.totalMinutes, 0) || 0), 0);
+          const sx = [];
+          if (v) {
+            if (asBool(v.dizzy)) sx.push('dizzy');
+            if (asBool(v.swelling)) sx.push('swelling');
+            if (asBool(v.breathing)) sx.push('breathing');
+          }
+          prog.forEach(a => {
+            if (asBool(a.dizzyDuring) || asBool(a.swellingDuring) || asBool(a.breathingDuring)) sx.push('session');
+          });
+          const isRest = (state.config.restDays || []).includes(d);
+          return `<tr>
+            <td>${DOW_FULL[dateFromIso(d).getDay()].slice(0,3)} ${dateFromIso(d).getDate()}${isRest ? ' (rest)' : ''}</td>
+            <td class="num">${escapeHtml(String(hr || '–'))}</td>
+            <td class="num">${prog.length || (isRest ? '–' : 0)}</td>
+            <td class="num">${escapeHtml(String(longest || '–'))}</td>
+            <td class="num">${tot || '–'}</td>
+            <td>${escapeHtml(sx.join(', ') || '–')}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+
+    ${symptomEvents.length ? `
+      <h3>Symptom events</h3>
+      <table class="snap-table">
+        <thead><tr><th>When</th><th>What</th><th>Note</th></tr></thead>
+        <tbody>
+          ${symptomEvents.map(s => `<tr>
+            <td>${escapeHtml(s.when)}</td>
+            <td>${escapeHtml(s.what)}</td>
+            <td>${escapeHtml(s.note || '')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    ` : ''}
+
+    ${state.config.medications && state.config.medications.length ? `
+      <h3>Medications</h3>
+      <ul>${state.config.medications.map(m => `<li>${escapeHtml(m)}</li>`).join('')}</ul>
+    ` : ''}
+
+    <div class="spacer-lg no-print"></div>
+  `;
+  switchView('print');
+}
 </script>
 
 <script>
