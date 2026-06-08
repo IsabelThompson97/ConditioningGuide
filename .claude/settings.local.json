@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l /Users/isabelthompson/CLAUDE/personal/Map/jobmap/index.html)",
+      "Bash(ls /Users/isabelthompson/CLAUDE/personal/Map/jobmap/)"
+    ]
+  }
+}
