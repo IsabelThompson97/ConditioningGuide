@@ -94,7 +94,7 @@
 }
 
 /* Theme: Warm paper — original, slightly more saturated than default */
-body.theme-warm {
+html.theme-warm {
   --bg: #f6f3ec;
   --panel: #fbfaf6;
   --panel-2: #efece2;
@@ -118,7 +118,7 @@ body.theme-warm {
 }
 
 /* Theme: Soft white — cool neutrals */
-body.theme-soft {
+html.theme-soft {
   --bg: #f5f5f7;
   --panel: #ffffff;
   --panel-2: #eeeef2;
@@ -142,7 +142,7 @@ body.theme-soft {
 }
 
 /* Theme: High contrast — for low-vision use */
-body.theme-contrast {
+html.theme-contrast {
   --bg: #ffffff;
   --panel: #ffffff;
   --panel-2: #f1f1f1;
@@ -166,7 +166,7 @@ body.theme-contrast {
 }
 
 /* Theme: Dark mode — warm dark with cream ink */
-body.theme-dark {
+html.theme-dark {
   --bg: #1d1f23;
   --panel: #25282d;
   --panel-2: #2f3338;
@@ -191,12 +191,12 @@ body.theme-dark {
   --shadow-pop: 0 2px 6px rgba(0,0,0,.35), 0 16px 40px rgba(0,0,0,.4);
 }
 
-body.text-large {
+html.text-large {
   --fs-body: 17px; --fs-body-sm: 15px; --fs-title: 17px;
   --fs-display: 24px; --fs-display-lg: 30px;
   --fs-eyebrow: 12px; --fs-caption: 11px;
 }
-body.text-xlarge {
+html.text-xlarge {
   --fs-body: 19px; --fs-body-sm: 16px; --fs-title: 19px;
   --fs-display: 26px; --fs-display-lg: 34px;
   --fs-eyebrow: 13px; --fs-caption: 12px;
@@ -381,12 +381,23 @@ button.danger {
   color: var(--signal-ink); border-color: var(--signal);
   background: var(--signal-bg);
 }
-button.big {
+button.big, .btn.big {
   font-size: var(--fs-lg);
   padding: 18px 16px;
   min-height: 64px;
   border-radius: var(--radius);
   font-weight: 500;
+  /* Sheer accent on hover/focus/active — same color shift for every big
+     button so none feels "primary" while the others sit secondary. */
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+button.big:hover, .btn.big:hover,
+button.big:focus-visible, .btn.big:focus-visible,
+button.big:active, .btn.big:active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-deep);
+  outline: none;
 }
 
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -831,8 +842,14 @@ input:focus, select:focus, textarea:focus {
 }
 .stage-card ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-2); }
 .stage-card .section-label {
-  font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--muted); margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-eyebrow);
+  color: var(--muted);
+  margin-top: 14px;
+  margin-bottom: 2px;
 }
 
 /* ---------- Safety view ---------- */
@@ -874,6 +891,128 @@ input:focus, select:focus, textarea:focus {
 
 .range-chips { display: flex; gap: 6px; margin-bottom: 14px; }
 .range-chips .chip { padding: 6px 12px; min-height: 32px; font-size: var(--fs-sm); }
+
+/* ---------- Narrative weekly summary card ---------- */
+.narrative-card {
+  background: linear-gradient(180deg, var(--accent-soft) 0%, var(--panel) 60%);
+  border-color: var(--accent-soft);
+  padding: 22px 20px 18px;
+}
+.narrative-eyebrow { display: block; margin-bottom: 14px; }
+.narrative-hero {
+  display: flex; align-items: baseline; gap: 14px;
+  margin-bottom: 18px;
+}
+.narrative-hero .hero-num {
+  font-family: var(--font-serif);
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--accent-deep);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.narrative-hero .hero-text {
+  flex: 1;
+  display: flex; flex-direction: column;
+  gap: 2px;
+  padding-top: 4px;
+}
+.narrative-hero .hero-line {
+  font-family: var(--font-serif);
+  font-size: var(--fs-display);
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--ink);
+  letter-spacing: var(--ls-display);
+}
+.narrative-hero .hero-sub {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body-sm);
+  color: var(--ink-2);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.narrative-mini-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+.mini-day {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.mini-day .mini-dow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caption);
+  color: var(--muted);
+}
+.mini-day .mini-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--c-empty);
+  border: 1px solid transparent;
+}
+.mini-day[data-state="programmed"] .mini-dot { background: var(--c-programmed); }
+.mini-day[data-state="light"]      .mini-dot { background: var(--c-light); }
+.mini-day[data-state="rest"]       .mini-dot { background: var(--c-rest); }
+.mini-day[data-state="empty"]      .mini-dot { background: transparent; border-color: var(--line-2); }
+.mini-day.today .mini-dot {
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.narrative-trends {
+  display: flex; flex-direction: column;
+  gap: 0;
+  margin-bottom: 14px;
+}
+.trend-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.trend-row:last-child { border-bottom: none; }
+.trend-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-eyebrow);
+  color: var(--muted);
+}
+.trend-value {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.trend-delta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caption);
+  color: var(--muted);
+}
+.trend-delta.good { color: var(--success); }
+.trend-delta.flat { color: var(--muted); }
+
+.narrative-notes p {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  color: var(--ink-2);
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+.narrative-notes p:last-child { margin-bottom: 0; }
 
 /* ---------- Weekly snapshot table ---------- */
 .snap-table {
@@ -1090,8 +1229,8 @@ function dayState(iso) {
 function computeStreak() {
   let streak = 0;
   let cursor = todayISO();
-  // Today only contributes if she's already done something today;
-  // if not, peek back from yesterday so she isn't told streak=0 at 8am.
+  // Today only contributes if she has already done something today;
+  // otherwise peek back from yesterday so the streak isn't shown as 0 at 8am.
   if (dayState(cursor) === 'empty') cursor = addDays(cursor, -1);
   for (let i = 0; i < 365; i++) {
     if (dayState(cursor) === 'empty') break;
@@ -1183,7 +1322,7 @@ function checkPlanReminders() {
           const diff = lastW - safeNum(prior.weight);
           if (diff >= PLAN_THRESHOLDS.weightGainPerDayLb) {
             reminders.push({
-              msg: `Morning weight is ${diff.toFixed(1)} lb up from yesterday. The plan lists ~2–3 lb in a day as a check-in sign — consider contacting her doctor.`
+              msg: `Morning weight is ${diff.toFixed(1)} lb up from yesterday. The plan lists ~2–3 lb in a day as a check-in sign — consider contacting your doctor.`
             });
           }
         }
@@ -1194,7 +1333,7 @@ function checkPlanReminders() {
           const diff = lastW - safeNum(old.weight);
           if (diff >= PLAN_THRESHOLDS.weightGainPerWeekLb) {
             reminders.push({
-              msg: `Morning weight is ${diff.toFixed(1)} lb up over about a week. The plan lists ~5 lb in a week as a check-in sign — consider contacting her doctor.`
+              msg: `Morning weight is ${diff.toFixed(1)} lb up over about a week. The plan lists ~5 lb in a week as a check-in sign — consider contacting your doctor.`
             });
           }
         }
@@ -1293,7 +1432,7 @@ function renderToday() {
 
     <h3 style="margin-top:24px;">Log something</h3>
     <div class="btn-grid-2" style="margin-bottom: 12px;">
-      <button class="btn big primary" onclick="openLog('vitals')">
+      <button class="btn big" onclick="openLog('vitals')">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
         Vitals
       </button>
@@ -1514,7 +1653,7 @@ function setLogFilter(k) {
 /* ─── 5c. Trends view + charts ──────────────────────────────────── */
 
 let trendsRange = 28;       // days
-let trendsTab = 'charts';   // charts | snapshot
+let trendsTab = 'snapshot'; // snapshot | charts — snapshot is the default
 
 const chartInstances = new Map(); // canvasId -> Chart
 
@@ -1529,8 +1668,8 @@ function renderTrends() {
     <h2 class="view-title">Trends</h2>
 
     <div class="chips" style="margin-bottom:16px;">
-      <button class="chip ${trendsTab==='charts'?'selected':''}" onclick="setTrendsTab('charts')">Charts</button>
       <button class="chip ${trendsTab==='snapshot'?'selected':''}" onclick="setTrendsTab('snapshot')">Weekly snapshot</button>
+      <button class="chip ${trendsTab==='charts'?'selected':''}" onclick="setTrendsTab('charts')">Charts</button>
     </div>
 
     ${trendsTab === 'charts' ? `
@@ -1972,20 +2111,85 @@ function drawWeightChart() {
 }
 
 function renderWeeklySnapshotPanel() {
-  // 8 weeks back, newest first
   const today = todayISO();
   const thisMon = mondayOf(today);
+  const lastMon = addDays(thisMon, -7);
+
+  // This week + previous for comparison; plus 8 weeks back for the table
+  const thisWeek = weekSnapshot(thisMon);
+  const lastWeek = weekSnapshot(lastMon);
   const weeks = [];
-  for (let i = 0; i < 8; i++) {
-    const ws = addDays(thisMon, -7 * i);
-    weeks.push(weekSnapshot(ws));
-  }
-  const lastDecision = state.stageDecisions
-    .slice().sort((a,b) => (b.weekStartDate||'').localeCompare(a.weekStartDate||''))[0];
+  for (let i = 0; i < 8; i++) weeks.push(weekSnapshot(addDays(thisMon, -7 * i)));
+
   const thisWeekDecision = state.stageDecisions.find(d => d.weekStartDate === thisMon);
+  const stage = STAGES[state.config.currentStage] || STAGES[0];
+
+  // Build the auto-generated narrative from the comparison
+  const narrative = buildWeekNarrative(thisWeek, lastWeek);
+  // Per-day activity dots (this week, Mon → Sun)
+  const days = Array.from({length: 7}, (_, i) => addDays(thisMon, i));
 
   return `
+    <!-- ───── Narrative card — the headline summary ───── -->
+    <div class="card narrative-card">
+      <div class="narrative-eyebrow eyebrow">Week of ${escapeHtml(fmtDate(thisMon))}</div>
+
+      <div class="narrative-hero">
+        <div class="hero-num">${narrative.heroNum}</div>
+        <div class="hero-text">
+          <div class="hero-line">${escapeHtml(narrative.heroLine)}</div>
+          ${narrative.heroSub ? `<div class="hero-sub">${escapeHtml(narrative.heroSub)}</div>` : ''}
+        </div>
+      </div>
+
+      <div class="narrative-mini-strip">
+        ${days.map(d => {
+          const st = dayState(d);
+          const dd = dateFromIso(d);
+          const isToday = d === today;
+          return `
+            <div class="mini-day ${isToday ? 'today' : ''}" data-state="${st}" title="${escapeHtml(fmtDayHeading(d))}">
+              <span class="mini-dow">${DOW_SHORT[dd.getDay()]}</span>
+              <span class="mini-dot"></span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      ${narrative.trends.length ? `
+        <div class="narrative-trends">
+          ${narrative.trends.map(t => `
+            <div class="trend-row">
+              <span class="trend-label">${escapeHtml(t.label)}</span>
+              <span class="trend-value">${escapeHtml(t.value)}</span>
+              <span class="trend-delta ${t.deltaClass || ''}">${escapeHtml(t.delta || '')}</span>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${narrative.notes.length ? `
+        <div class="narrative-notes">
+          ${narrative.notes.map(n => `<p>${escapeHtml(n)}</p>`).join('')}
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- ───── This week's stage decision ───── -->
     <div class="card">
+      <div class="card-title">Stage decision · this week</div>
+      <p>You're on <strong>Stage ${stage.n} — ${escapeHtml(stage.title)}</strong>. You decide whether to advance, hold, or drop back. The app never auto-advances.</p>
+      ${thisWeekDecision ? `
+        <div class="kv"><span class="k">Recorded</span><span class="v">${escapeHtml(thisWeekDecision.choice)}</span></div>
+      ` : ''}
+      <button class="btn primary" onclick="openStageDecision('${thisMon}')">
+        ${thisWeekDecision ? "Edit this week's decision" : "Make this week's decision"}
+      </button>
+    </div>
+
+    <!-- ───── 8-week history table ───── -->
+    <div class="card">
+      <div class="card-title">Last 8 weeks</div>
       <table class="snap-table">
         <thead><tr>
           <th>Week of</th><th>Days</th><th>Longest</th><th>Total</th>
@@ -2007,23 +2211,99 @@ function renderWeeklySnapshotPanel() {
       </table>
     </div>
 
-    <div class="card">
-      <h4 style="margin-top:0;">Stage decision for this week</h4>
-      <p class="small">She decides — the app never auto-advances. Tick the criteria she's actually met, then mark advance / hold / drop back.</p>
-      ${thisWeekDecision ? `
-        <div class="kv"><span class="k">Recorded</span><span class="v">${escapeHtml(thisWeekDecision.choice)}</span></div>
-      ` : ''}
-      <button class="btn primary" onclick="openStageDecision('${thisMon}')">
-        ${thisWeekDecision ? 'Edit this week\'s decision' : 'Make this week\'s decision'}
-      </button>
-    </div>
-
+    <!-- ───── Export / share ───── -->
     <div class="card no-print">
-      <h4 style="margin-top:0;">Send a snapshot</h4>
-      <p class="small">Print-friendly weekly summary suitable for sending to her cardiologist.</p>
+      <div class="card-title">Send a snapshot</div>
+      <p class="small">A printable weekly summary suitable for sending to your cardiologist.</p>
       <button class="btn" onclick="openPrintView('${thisMon}')">Open weekly summary</button>
     </div>
   `;
+}
+
+/** Build the auto-narrative — picks the most useful comparisons and
+ *  turns them into a short headline + a few trend lines + 0–3 notes.
+ *  Pure function of the two snapshots: no medical advice added. */
+function buildWeekNarrative(thisWeek, lastWeek) {
+  const t = thisWeek, l = lastWeek;
+  const out = { heroNum: t.daysActive, heroLine: '', heroSub: '', trends: [], notes: [] };
+
+  // Hero line
+  const dWord = t.daysActive === 1 ? 'day' : 'days';
+  out.heroLine = `${dWord} you showed up this week.`;
+  if (t.daysActive === 7) out.heroLine = `days kept up — every day this week.`;
+  else if (t.daysActive === 0) {
+    out.heroLine = 'days logged yet this week.';
+    out.heroNum = '–';
+  }
+
+  if (l && l.daysActive > 0) {
+    const diff = t.daysActive - l.daysActive;
+    if (diff > 0)      out.heroSub = `Up ${diff} from last week.`;
+    else if (diff < 0) out.heroSub = `Down ${Math.abs(diff)} from last week — that's okay.`;
+    else               out.heroSub = `Same as last week.`;
+  }
+
+  // Trend rows — only show what's been logged this week
+  const trendRow = (label, value, delta, deltaClass) => out.trends.push({ label, value, delta, deltaClass });
+  const arrow = (a, b, unit, betterDirection = 'up') => {
+    if (b === null || b === undefined || b === 0) return { delta: '', cls: '' };
+    const d = a - b;
+    if (d === 0) return { delta: 'same as last week', cls: 'flat' };
+    const up = d > 0;
+    const arrowChar = up ? '↑' : '↓';
+    const good = (betterDirection === 'up') === up;
+    return { delta: `${arrowChar} ${Math.abs(d)}${unit ? ' ' + unit : ''}`, cls: good ? 'good' : 'flat' };
+  };
+
+  if (t.longestContinuous > 0) {
+    const a = arrow(t.longestContinuous, l && l.longestContinuous, 'min', 'up');
+    trendRow('Longest continuous activity', `${t.longestContinuous} min`, a.delta, a.cls);
+  }
+  if (t.totalProgrammed > 0) {
+    const a = arrow(t.totalProgrammed, l && l.totalProgrammed, 'min', 'up');
+    trendRow('Total programmed minutes', `${t.totalProgrammed} min`, a.delta, a.cls);
+  }
+  if (t.typicalBorg !== null && t.typicalBorg !== undefined) {
+    // Lower Borg for similar work = good
+    let delta = '', cls = '';
+    if (l && l.typicalBorg !== null && l.typicalBorg !== undefined) {
+      const d = Math.round((t.typicalBorg - l.typicalBorg) * 10) / 10;
+      if (d === 0) { delta = 'same as last week'; cls = 'flat'; }
+      else if (d < 0 && t.totalProgrammed >= (l.totalProgrammed || 0) * 0.85) {
+        delta = `easier (↓ ${Math.abs(d)})`; cls = 'good';
+      } else if (d < 0) {
+        delta = `↓ ${Math.abs(d)}`; cls = 'flat';
+      } else {
+        delta = `↑ ${d}`; cls = 'flat';
+      }
+    }
+    trendRow('Typical effort', `Borg ${t.typicalBorg}`, delta, cls);
+  }
+  if (t.hrRange) {
+    trendRow('Morning resting HR', `${t.hrRange[0]}–${t.hrRange[1]} bpm`, '', '');
+  }
+
+  // Notes — short, plain-language observations.
+  const notes = [];
+  if (l && t.longestContinuous > l.longestContinuous && l.longestContinuous > 0) {
+    notes.push(`Endurance is building — your longest continuous activity is up ${t.longestContinuous - l.longestContinuous} minutes from last week.`);
+  }
+  if (l && t.typicalBorg !== null && l.typicalBorg !== null &&
+      t.typicalBorg < l.typicalBorg && t.totalProgrammed >= (l.totalProgrammed || 0) * 0.85) {
+    notes.push("Same work, less effort — that's real fitness gain.");
+  }
+  if (t.anySymptoms) {
+    notes.push("Some symptoms were noted this week — they're listed below in the day-by-day section.");
+  }
+  if (t.daysActive >= 5 && (!l || l.daysActive < t.daysActive)) {
+    notes.push('Strong consistency this week. Keep the rhythm.');
+  }
+  if (t.daysActive === 0) {
+    notes.push("Nothing logged yet this week. Today's a fine day to start — even five minutes counts.");
+  }
+  out.notes = notes.slice(0, 3);
+
+  return out;
 }
 </script>
 
@@ -2036,22 +2316,18 @@ function renderGuide() {
   root.innerHTML = `
     <h2 class="view-title">Guide</h2>
 
-    <h3>Borg perceived-effort scale</h3>
-    <p class="small">A read of how hard the work <em>feels</em>. Her target lives at 11, occasionally 12–13 later on. Never higher without her doctor specifically okaying it.</p>
-    <div class="card">
-      <div class="borg-grid">
-        ${BORG_SCALE.map(b => `
-          <div class="borg-row ${b.tier === 'too-hard' ? 'too-hard' : ''} ${b.tier === 'target' ? 'selected' : ''}">
-            <div class="num">${b.n}</div>
-            <div class="desc">${escapeHtml(b.desc)}</div>
-          </div>
-        `).join('')}
-      </div>
+    <h3>Warm-up / cool-down menu</h3>
+    <div class="card soft">
+      <p class="small" style="margin-bottom:6px;">Every session, both ends:</p>
+      <ul style="margin: 0; padding-left:20px;">
+        ${WARMUP_COOLDOWN.map(x => `<li>${escapeHtml(x)}</li>`).join('')}
+      </ul>
     </div>
 
-    <h3>The talk test</h3>
+    <h3>Progression rule</h3>
     <div class="card soft">
-      <p>She should be able to hold a normal conversation the entire time. If she can't finish a sentence, she's working too hard — ease off. This is the master override; it beats every number.</p>
+      <p>One variable at a time, duration before intensity. When advancing, lengthen <strong>time</strong> first, then <strong>frequency</strong>, and only much later nudge <strong>intensity</strong>. Never two at once.</p>
+      <p style="margin-bottom:0;"><strong>Drop back</strong> one stage on any day with more dizziness, new or worse swelling, sudden weight gain, more breathlessness, or a worrying EKG. Return to the lower stage until you feel solid again, then rebuild.</p>
     </div>
 
     <h3>Stages</h3>
@@ -2060,6 +2336,11 @@ function renderGuide() {
         <div class="stage-card ${s.n === curStage ? 'current' : ''}">
           <h4>Stage ${s.n} — ${escapeHtml(s.title)} <span class="small" style="font-weight:400;">· ${escapeHtml(s.duration)}</span></h4>
           <div class="meta">Focus: ${escapeHtml(s.focus)} · Effort: Borg ${escapeHtml(s.borg)}</div>
+
+          ${s.frequency ? `
+            <div class="section-label">Recommended sessions per week</div>
+            <ul>${s.frequency.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+          ` : ''}
 
           <div class="section-label">Session shape</div>
           <ul>${s.shape.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
@@ -2076,18 +2357,22 @@ function renderGuide() {
       `).join('')}
     </div>
 
-    <h3>Warm-up / cool-down menu</h3>
-    <div class="card soft">
-      <p class="small" style="margin-bottom:6px;">Every session, both ends:</p>
-      <ul style="margin: 0; padding-left:20px;">
-        ${WARMUP_COOLDOWN.map(x => `<li>${escapeHtml(x)}</li>`).join('')}
-      </ul>
+    <h3>Borg perceived-effort scale</h3>
+    <p class="small">A read of how hard the work <em>feels</em>. Your target lives at 11, occasionally 12–13 later on. Never higher without your doctor specifically okaying it.</p>
+    <div class="card">
+      <div class="borg-grid">
+        ${BORG_SCALE.map(b => `
+          <div class="borg-row ${b.tier === 'too-hard' ? 'too-hard' : ''} ${b.tier === 'target' ? 'selected' : ''}">
+            <div class="num">${b.n}</div>
+            <div class="desc">${escapeHtml(b.desc)}</div>
+          </div>
+        `).join('')}
+      </div>
     </div>
 
-    <h3>Progression rule</h3>
+    <h3>The talk test</h3>
     <div class="card soft">
-      <p>One variable at a time, duration before intensity. When advancing, lengthen <strong>time</strong> first, then <strong>frequency</strong>, and only much later nudge <strong>intensity</strong>. Never two at once.</p>
-      <p style="margin-bottom:0;"><strong>Drop back</strong> one stage on any day with more dizziness, new or worse swelling, sudden weight gain, more breathlessness, or a worrying EKG. Return to the lower stage until she feels solid again, then rebuild.</p>
+      <p>You should be able to hold a normal conversation the entire time. If you can't finish a sentence, you're working too hard — ease off. This is the master override; it beats every number.</p>
     </div>
 
     <div class="spacer-lg"></div>
@@ -2109,13 +2394,13 @@ function renderSettings() {
         <select id="cfg-stage">
           ${STAGES.map(s => `<option value="${s.n}" ${c.currentStage === s.n ? 'selected' : ''}>Stage ${s.n} — ${escapeHtml(s.title)}</option>`).join('')}
         </select>
-        <span class="help">She chooses — the app never auto-advances. Make weekly decisions from the Trends → Weekly snapshot tab.</span>
+        <span class="help">You choose — the app never auto-advances. Make weekly decisions from the Trends → Weekly snapshot tab.</span>
       </label>
     </div>
 
     <div class="card">
       <h4 style="margin-top:0;">Weekly plan</h4>
-      <p class="small">What kind of day each is. Edit to match her routine.</p>
+      <p class="small">What kind of day each is. Edit to match your routine.</p>
       ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `
         <label class="field">
           <span class="lbl">${d}</span>
@@ -2153,15 +2438,15 @@ function renderSettings() {
         <span class="switch"></span>
       </label>
       <label class="field" id="cfg-weight-baseline-wrap" style="${c.weightTrackingEnabled ? '' : 'display:none'}">
-        <span class="lbl">Her usual weight right now (lb)</span>
+        <span class="lbl">Your usual weight right now (lb)</span>
         <input type="number" id="cfg-weight-baseline" value="${c.weightBaselineLb || ''}" step="0.1" placeholder="set once when turning this on" />
         <span class="help">Used only to detect the plan's check-in thresholds (~2–3 lb/day, ~5 lb/week).</span>
       </label>
     </div>
 
     <div class="card">
-      <h4 style="margin-top:0;">Her doctor's ranges</h4>
-      <p class="small">All optional. Reminders only fire on fields she's entered. Never used as diagnosis.</p>
+      <h4 style="margin-top:0;">Your doctor's ranges</h4>
+      <p class="small">All optional. Reminders only fire on fields you've entered. Never used as diagnosis.</p>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <label class="field">
           <span class="lbl">HR floor</span>
@@ -2172,7 +2457,7 @@ function renderSettings() {
           <input type="number" id="cfg-hr-ceiling" value="${c.doctorRanges.hrCeiling || ''}" />
         </label>
       </div>
-      <p class="small italic">Blood-sugar ranges from her doctor can be added here in a later update; for now the app just charts what she logs.</p>
+      <p class="small italic">Blood-sugar ranges from your doctor can be added here in a later update; for now the app just charts what you log.</p>
     </div>
 
     <div class="card">
@@ -2265,14 +2550,19 @@ function saveSettings() {
 }
 
 function applyAppearance() {
-  document.body.className = '';
+  // Apply theme + text-size classes to <html>, not <body>. Both html
+  // and body have `background: var(--bg)`, but body's CSS-var override
+  // wouldn't affect html's bg paint, so the page would show two colors
+  // (bug fixed here). Putting the class on <html> themes both.
+  const root = document.documentElement;
+  root.className = '';
   if (state.config.theme && state.config.theme !== 'default') {
-    document.body.classList.add('theme-' + state.config.theme);
+    root.classList.add('theme-' + state.config.theme);
   }
   if (state.config.textSize && state.config.textSize !== 'normal') {
-    document.body.classList.add('text-' + state.config.textSize);
+    root.classList.add('text-' + state.config.textSize);
   }
-  // Trigger a chart re-render so they pick up new theme colors
+  // Re-render charts so they pick up the new themed colors
   if (activeView === 'trends' && trendsTab === 'charts') {
     setTimeout(() => { try { drawAllCharts(); } catch(e) {} }, 0);
   }
@@ -2512,7 +2802,7 @@ function renderSafety() {
     </div>
 
     <div class="card soft small italic">
-      Still her doctor's call, not the plan's: any beta-blocker change, and diabetes precautions around exercise (hydration, low blood sugar, foot care near the pool).
+      Still your doctor's call, not the plan's: any beta-blocker change, and diabetes precautions around exercise (hydration, low blood sugar, foot care near the pool).
     </div>
 
     <div class="spacer-lg"></div>
@@ -2540,8 +2830,8 @@ const BORG_SCALE = [
   { n: 11, desc: 'Light — could do this a long time', tier: 'target' },
   { n: 12, desc: 'Light to somewhat hard',         tier: 'target' },
   { n: 13, desc: 'Somewhat hard — sustainable',    tier: 'ceiling' },
-  { n: 14, desc: 'Harder than her target',         tier: 'too-hard' },
-  { n: 15, desc: 'Hard — not for her right now',   tier: 'too-hard' },
+  { n: 14, desc: 'Harder than your target',        tier: 'too-hard' },
+  { n: 15, desc: 'Hard — not for you right now',   tier: 'too-hard' },
   { n: 16, desc: 'Hard',                           tier: 'too-hard' },
   { n: 17, desc: 'Very hard',                      tier: 'too-hard' },
   { n: 18, desc: 'Very hard',                      tier: 'too-hard' },
@@ -2554,23 +2844,27 @@ const STAGES = [
   {
     n: 0, title: 'Establish baseline',
     duration: '~1st week',
-    focus: 'Find her true current level',
+    focus: 'Find your true current level',
     borg: '9–11',
+    frequency: [
+      'Whatever you’re already doing — no prescription yet',
+      'Goal: ~1 week of log + EKG data for your cardiologist'
+    ],
     shape: [
-      'Keep doing exactly what she does now',
-      'Shallow-water walking/movement, light housework, cats',
+      'Keep doing exactly what you do now',
+      'Shallow-water walking/movement, light housework, the cats',
       'Begin logging each session + a morning resting EKG'
     ],
     aquatic: [
-      'Her usual shallow-water walking/movement'
+      'Your usual shallow-water walking/movement'
     ],
     land: [
-      'Her usual housework',
+      'Your usual housework',
       'Caring for the cats'
     ],
     advance: [
       'About a week of log + EKG data gathered',
-      'Cardiologist has confirmed she’s okay to progress',
+      'Cardiologist has confirmed you’re okay to progress',
       'Doctor has given any rate limits to respect'
     ]
   },
@@ -2579,6 +2873,12 @@ const STAGES = [
     duration: '~2–3 weeks',
     focus: 'Get comfortable, consistent',
     borg: '11 (light)',
+    frequency: [
+      '3 pool / walking sessions per week',
+      '2 strength + balance days (nonconsecutive)',
+      '1 favorite gentle activity day',
+      '1 rest day'
+    ],
     shape: [
       '3–5 min warm-up',
       '~15–20 min walking total, broken into short bouts (e.g., 3 × 3–5 min) with rests',
@@ -2609,6 +2909,12 @@ const STAGES = [
     duration: '~3–6 weeks',
     focus: 'Endurance',
     borg: '11–12',
+    frequency: [
+      '3 pool / walking sessions per week — longer continuous',
+      '2 strength + balance days (1–2 sets)',
+      '1 favorite gentle activity day',
+      '1 rest day'
+    ],
     shape: [
       'Warm-up',
       '~10–15 min continuous walking, ~20–30 min total session',
@@ -2638,6 +2944,12 @@ const STAGES = [
     duration: '~6–10 weeks (only if cleared)',
     focus: 'A little harder, more variety',
     borg: 'mostly 11; brief 13',
+    frequency: [
+      '3 pool / walking sessions per week — with brief faster intervals',
+      '2 strength + balance days',
+      '1 variety day (different walking patterns, side-stepping, etc.)',
+      '1 rest day'
+    ],
     shape: [
       'Warm-up',
       'Mostly easy walking with a few 1–2 min faster intervals',
@@ -2667,6 +2979,11 @@ const STAGES = [
     duration: 'Ongoing',
     focus: 'Keep it for life',
     borg: '11–13',
+    frequency: [
+      'Aerobic activity ~5+ days per week (most days)',
+      '2 strength + balance days per week',
+      'Rest days as needed'
+    ],
     shape: [
       '~30+ min of comfortable activity most days',
       'Strength + balance ~2 days/week',
@@ -2794,13 +3111,13 @@ const SAFETY = {
       'Bluish lips',
       'Confusion'
     ],
-    extra: 'If she feels dizzy in the water, get to the shallow end / edge and out (slowly) right away — don’t wait to see if it passes.'
+    extra: 'If you feel dizzy in the water, get to the shallow end / edge and out (slowly) right away — don’t wait to see if it passes.'
   },
   pool: {
     title: 'Pool, every time',
     items: [
       'Never in the water alone; phone at the edge at minimum',
-      'Shallow enough to stand with her head well clear; walking, not treading or deep water',
+      'Shallow enough to stand with your head well clear; walking, not treading or deep water',
       'Warm, not hot, not cold water',
       'Get out slowly — sit on the steps a minute before standing',
       'Out of the midday heat; hydrate; not right after a big meal'
@@ -3209,7 +3526,7 @@ function openActivityForm(prefill) {
     }
     subWrap.innerHTML = `
       <div class="field">
-        <span class="lbl">What did she do? <span class="small">(pick all that apply)</span></span>
+        <span class="lbl">What did you do? <span class="small">(pick all that apply)</span></span>
         <div class="chips" id="f-sub-chips">
           ${cat.subtypes.map(st => `
             <button type="button" class="chip ${currentSubs.includes(st) ? 'selected' : ''}" data-sub="${escapeHtml(st)}">${escapeHtml(st)}</button>
@@ -3240,7 +3557,7 @@ function openActivityForm(prefill) {
             <input type="number" inputmode="numeric" id="f-mpr" value="${escapeHtml(r.minutesPerRound ?? '')}" />
           </label>
         </div>
-        <span class="help">e.g., 3 rounds × 5 min = 15 total. Min/round is what counts as her "continuous" duration on the staircase chart.</span>
+        <span class="help">e.g., 3 rounds × 5 min = 15 total. Min/round is what counts as your "continuous" duration on the staircase chart.</span>
         <label style="margin-top:8px; display:block;"><span class="small">Rest between rounds (min, optional)</span>
           <input type="number" inputmode="numeric" id="f-rest" value="${escapeHtml(r.restBetweenMin ?? '')}" />
         </label>
@@ -3404,14 +3721,14 @@ function openEkgForm(prefill) {
         </div>
       </div>
       <div class="field">
-        ${renderToggleRow('symptomatic', 'She felt off when this was taken', asBool(r.symptomatic))}
+        ${renderToggleRow('symptomatic', 'You felt off when this was taken', asBool(r.symptomatic))}
       </div>
       <label class="field">
         <span class="lbl">Note (optional)</span>
         <textarea id="f-note" rows="2">${escapeHtml(r.note || '')}</textarea>
       </label>
       <div class="card soft small italic">
-        Tip: save tracings from the device app the usual way, then send them on to her cardiologist. This log is for the headline numbers.
+        Tip: save tracings from the device app the usual way, then send them on to your cardiologist. This log is for the headline numbers.
       </div>
     </div>
     <div class="modal-foot">
@@ -3624,14 +3941,14 @@ function openStageDecision(weekStartIso) {
       </div>
 
       <h4>"Ready to advance" criteria for this stage</h4>
-      <p class="small">She ticks the ones she's actually met this week.</p>
+      <p class="small">Tick the ones you've actually met this week.</p>
       <div id="f-criteria">
         ${stage.advance.map((c, i) => `
           ${renderToggleRow('cr-' + i, c, ticked[i])}
         `).join('')}
       </div>
 
-      <h4>Her choice</h4>
+      <h4>Your choice</h4>
       <div class="chips" id="f-choice">
         ${[
           ['advance','Advance to next stage'],
@@ -3648,7 +3965,7 @@ function openStageDecision(weekStartIso) {
       </label>
 
       <div class="card soft small italic" style="margin-top:14px;">
-        The app records what she chose. It never auto-advances. Confirm progressive exertion with her cardiologist when in doubt.
+        The app records what you chose. It never auto-advances. Confirm progressive exertion with your cardiologist when in doubt.
       </div>
     </div>
     <div class="modal-foot">
@@ -3710,7 +4027,7 @@ function renderFirstRunStep() {
     <div class="first-run-step">
       <h2>Welcome.</h2>
       <div class="welcome-block">
-        <p style="margin:0 0 8px;">This is her companion for the cardiac-rehab plan. It logs vitals and activity, charts how things are trending, and keeps the safety guidance one tap away.</p>
+        <p style="margin:0 0 8px;">This is your companion for the cardiac-rehab plan. It logs your vitals and activity, charts how things are trending, and keeps the safety guidance one tap away.</p>
         <p style="margin:0;"><strong>Rest days you've planned count as keeping up and are part of the plan.</strong></p>
       </div>
       <p class="small">A few short questions and you're set. You can change everything later in Settings.</p>
@@ -3718,8 +4035,8 @@ function renderFirstRunStep() {
   `;
   if (key === 'stage') body = `
     <div class="first-run-step">
-      <h2>Which stage is she on?</h2>
-      <p class="small">If she's just starting and you're gathering baseline readings, Stage 0 is the right answer.</p>
+      <h2>Which stage are you on?</h2>
+      <p class="small">If you're just starting out and gathering baseline readings, Stage 0 is the right answer.</p>
       <select id="fr-stage">
         ${STAGES.map(s => `<option value="${s.n}" ${firstRunData.stage === s.n ? 'selected' : ''}>Stage ${s.n} — ${escapeHtml(s.title)}</option>`).join('')}
       </select>
@@ -3728,7 +4045,7 @@ function renderFirstRunStep() {
   if (key === 'starting') body = `
     <div class="first-run-step">
       <h2>What's a comfortable starting "minutes per round"?</h2>
-      <p class="small">Roughly how many minutes can she walk in the pool comfortably before resting? The plan suggests around 3–5 minutes for many deconditioned people — pick whatever's honest.</p>
+      <p class="small">Roughly how many minutes can you walk in the pool comfortably before resting? The plan suggests around 3–5 minutes for many deconditioned people — pick whatever's honest.</p>
       <input type="number" id="fr-mpr" min="1" max="60" value="${firstRunData.mpr}" />
       <p class="small">This is just for the suggested-session card and the staircase chart's starting line.</p>
     </div>
@@ -3747,8 +4064,8 @@ function renderFirstRunStep() {
   if (key === 'done') body = `
     <div class="first-run-step">
       <h2>All set.</h2>
-      <p>The bottom bar takes her between Today, the Log, Trends, the Guide, and Safety. The gear (top-right) reopens Settings.</p>
-      <p class="small">Things she might do first: log this morning's resting heart rate, then today's pool session.</p>
+      <p>The bottom bar takes you between Today, the Log, Trends, the Guide, and Safety. The gear (top-right) reopens Settings.</p>
+      <p class="small">A nice first step: log this morning's resting heart rate, then today's pool session.</p>
     </div>
   `;
 
