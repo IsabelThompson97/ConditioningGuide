@@ -408,6 +408,48 @@ button.big:active, .btn.big:active {
   gap: 12px;
 }
 
+/* ---------- Settings sticky header (back + save reachable without scrolling) ---------- */
+.settings-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+  padding: 10px 0 14px;
+  margin: -4px 0 18px;
+  border-bottom: 1px solid var(--line);
+}
+.settings-bar .icon-btn {
+  background: transparent; border: none; cursor: pointer;
+  padding: 8px; margin-left: -8px;
+  color: var(--ink-2);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  min-width: var(--tap); min-height: var(--tap);
+  transition: color 0.12s, background 0.12s;
+}
+.settings-bar .icon-btn:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.settings-bar .settings-title {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--fs-display);
+  font-weight: 500;
+  letter-spacing: var(--ls-display);
+  line-height: 1.1;
+}
+.settings-bar .settings-save {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  min-height: 40px;
+  font-size: var(--fs-body-sm);
+}
+
 /* ---------- Bottom tab nav ---------- */
 #bottom-tabs {
   position: fixed; bottom: 0; left: 0; right: 0;
@@ -430,12 +472,39 @@ button.big:active, .btn.big:active {
   font-weight: 500;
   min-height: var(--tap);
   border-radius: 0;
-  transition: color 0.12s;
+  position: relative;
+  transition: color 0.18s, background 0.18s;
 }
-#bottom-tabs button svg { width: 22px; height: 22px; }
+#bottom-tabs button svg { width: 22px; height: 22px; transition: transform 0.18s; }
+/* Hover/focus — soft accent tint, gentle lift on the icon */
+#bottom-tabs button:hover,
+#bottom-tabs button:focus-visible {
+  color: var(--accent);
+  background: var(--accent-soft);
+  outline: none;
+}
+#bottom-tabs button:hover svg,
+#bottom-tabs button:focus-visible svg { transform: translateY(-1px); }
 #bottom-tabs button.active { color: var(--accent); }
-#bottom-tabs button.safety { color: var(--ink-2); }
+/* Active gets a subtle accent bar at the top of the tab */
+#bottom-tabs button.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 18%; right: 18%;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 0 0 2px 2px;
+}
+/* Safety: same neutral muted as the others when unselected; amber accent
+   only when it's the active tab (so the safety state still reads as
+   distinct without darkening the row at rest). */
 #bottom-tabs button.active.safety { color: var(--signal); }
+#bottom-tabs button.active.safety::before { background: var(--signal); }
+#bottom-tabs button.safety:hover,
+#bottom-tabs button.safety:focus-visible {
+  color: var(--signal);
+  background: var(--signal-bg);
+}
 
 /* ---------- Day strip ---------- */
 .day-strip {
@@ -852,6 +921,22 @@ input:focus, select:focus, textarea:focus {
   margin-bottom: 2px;
 }
 
+/* ---------- References list ---------- */
+.ref-list {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  font-size: var(--fs-body-sm);
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.ref-list li {
+  margin-bottom: 14px;
+  padding-left: 4px;
+}
+.ref-list li:last-child { margin-bottom: 0; }
+.ref-list em { color: var(--ink); }
+.ref-list a { word-break: break-all; }
+
 /* ---------- Safety view ---------- */
 .safety-block {
   background: var(--panel);
@@ -1186,6 +1271,32 @@ function fmtDayHeading(iso) {
   if (iso === addDays(todayISO(), -1)) return 'Yesterday';
   const d = dateFromIso(iso);
   return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+}
+/** Label a week by its date range — "Jun 8 – 14" or "May 30 – Jun 5".
+ *  Use this anywhere we're naming a *week*, not a *day* — `fmtDate`
+ *  collapses today's date to "Today", which reads as nonsense when
+ *  the date is actually a Monday at the start of a 7-day span. */
+function fmtWeekRange(weekStartIso) {
+  const start = dateFromIso(weekStartIso);
+  const end = dateFromIso(addDays(weekStartIso, 6));
+  const opts = { month: 'short', day: 'numeric' };
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+    return `${start.toLocaleDateString(undefined, opts)} – ${end.getDate()}`;
+  }
+  return `${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`;
+}
+/** Short week-start label for table rows: "Mon, Jun 8". */
+function fmtWeekStart(iso) {
+  return dateFromIso(iso).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+/** "This week" if the given week start is the current Monday, else a
+ *  range label. Use for headings/eyebrows. */
+function fmtWeekLabel(weekStartIso) {
+  const thisMon = mondayOf(todayISO());
+  const range = fmtWeekRange(weekStartIso);
+  if (weekStartIso === thisMon) return `This week · ${range}`;
+  if (weekStartIso === addDays(thisMon, -7)) return `Last week · ${range}`;
+  return range;
 }
 function safeNum(v, fallback) {
   const n = Number(v);
@@ -1732,14 +1843,73 @@ function setTrendsTab(t) { trendsTab = t; renderTrends(); }
 
 /** Common chart options — calm theme, tap-friendly tooltips. */
 function chartTheme() {
-  const css = getComputedStyle(document.body);
-  const ink = css.getPropertyValue('--ink').trim();
-  const ink2 = css.getPropertyValue('--ink-2').trim();
-  const line = css.getPropertyValue('--line').trim();
-  const muted = css.getPropertyValue('--muted').trim();
-  const accent = css.getPropertyValue('--accent').trim();
-  const panel = css.getPropertyValue('--panel').trim();
-  return { ink, ink2, line, muted, accent, panel };
+  const css = getComputedStyle(document.documentElement);
+  const get = n => css.getPropertyValue(n).trim();
+  return {
+    ink:     get('--ink'),
+    ink2:    get('--ink-2'),
+    line:    get('--line'),
+    muted:   get('--muted'),
+    accent:  get('--accent'),
+    panel:   get('--panel'),
+    success: get('--success'),
+    signal:  get('--signal')
+  };
+}
+
+/** Range-aware point + line sizing. Longer ranges = denser data =
+ *  smaller marks so the chart stays legible. */
+function chartDensity() {
+  const r = trendsRange;
+  if (r <= 14) return { point: 4,   hover: 7, line: 2   };
+  if (r <= 28) return { point: 3,   hover: 6, line: 1.8 };
+  if (r <= 90) return { point: 2,   hover: 5, line: 1.5 };
+  return         { point: 1.5, hover: 4, line: 1.2 };
+}
+
+/** Legend that grays out hidden datasets instead of striking them through.
+ *  Default Chart.js draws a strike line through the label when an entry
+ *  is toggled off; this generator keeps text upright but fades the swatch
+ *  and text to muted so the off state still reads at a glance. */
+function legendWithGrayOut(theme, base = {}) {
+  return {
+    display: true,
+    position: 'bottom',
+    ...base,
+    labels: {
+      color: theme.ink2,
+      font: { size: 11 },
+      boxWidth: 10,
+      padding: 12,
+      ...(base.labels || {}),
+      generateLabels: (chart) => {
+        const items = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+        items.forEach((item) => {
+          const visible = chart.isDatasetVisible(item.datasetIndex);
+          if (!visible) {
+            item.fillStyle   = theme.muted + '33';   // faded swatch fill
+            item.strokeStyle = theme.muted + '88';   // faded swatch ring
+            item.fontColor   = theme.muted;          // muted text
+            item.hidden      = false;                // suppresses strikethrough
+          }
+        });
+        return items;
+      }
+    }
+  };
+}
+
+/** Distinct palette per home-device rhythm label. Picked for clear
+ *  separation at a glance — five hues spread across the color wheel
+ *  with enough saturation to read distinctly against the chart. */
+function rhythmPalette(theme) {
+  return {
+    normal:       '#3e9e5e',  // clear green — all clear
+    afib:         '#e08a2e',  // clear amber/orange — attention
+    bradycardia:  '#3382c8',  // clear blue — slow rate
+    tachycardia:  '#d04848',  // clear rust — fast rate
+    unclassified: '#7e7e84'   // mid neutral gray
+  };
 }
 
 function rangeDays() {
@@ -1805,12 +1975,20 @@ function commonOpts(theme, extra = {}) {
 
 function drawHrChart() {
   const t = chartTheme();
+  const dens = chartDensity();
+  const palette = rhythmPalette(t);
   const days = rangeDays();
-  // Morning HR points
+
+  // Morning HR (one value per day)
   const hrByDay = new Map();
-  state.vitals.forEach(v => { if (v.date && v.restingHR != null && v.restingHR !== '') hrByDay.set(v.date, safeNum(v.restingHR)); });
+  state.vitals.forEach(v => {
+    if (v.date && v.restingHR != null && v.restingHR !== '') {
+      hrByDay.set(v.date, safeNum(v.restingHR));
+    }
+  });
   const hrData = days.map(d => hrByDay.has(d) ? hrByDay.get(d) : null);
-  // EKG events on each day → dots at top
+
+  // EKG events grouped by day
   const ekgByDay = new Map();
   state.ekg.forEach(e => {
     const d = (e.dateTime || '').slice(0, 10);
@@ -1818,14 +1996,38 @@ function drawHrChart() {
     if (!ekgByDay.has(d)) ekgByDay.set(d, []);
     ekgByDay.get(d).push(e);
   });
-  const ekgDots = days.map(d => ekgByDay.has(d) ? (safeNum((ekgByDay.get(d)[0]).rate)) : null);
-  const ekgColors = days.map(d => {
-    if (!ekgByDay.has(d)) return 'transparent';
-    const any = ekgByDay.get(d).some(e => (e.rhythm && e.rhythm !== 'normal') || asBool(e.symptomatic));
-    return any ? t.muted : t.accent;
-  });
 
-  if (hrData.every(v => v == null) && ekgDots.every(v => v == null)) {
+  // One dataset per rhythm — each only has data on days where that
+  // rhythm appears. Empty rhythms are dropped so the legend stays clean.
+  const RHYTHMS = ['normal', 'afib', 'bradycardia', 'tachycardia', 'unclassified'];
+  const ekgDotRadius = Math.min(dens.point + 3, 7);
+  const ekgDatasets = RHYTHMS.map(rhythm => {
+    const data = days.map(d => {
+      if (!ekgByDay.has(d)) return null;
+      const events = ekgByDay.get(d).filter(e => (e.rhythm || 'unclassified') === rhythm);
+      return events.length ? safeNum(events[0].rate) : null;
+    });
+    if (data.every(v => v == null)) return null;
+    return {
+      label: `EKG · ${rhythm}`,
+      data,
+      showLine: false,
+      pointRadius: ekgDotRadius,
+      pointHoverRadius: ekgDotRadius + 2,
+      pointStyle: 'rectRot',
+      pointBorderWidth: 1.8,
+      pointHoverBorderWidth: 2.2,
+      pointBorderColor: palette[rhythm],
+      pointBackgroundColor: palette[rhythm] + 'cc',   // 80% alpha fill, solid ring
+      // Dataset-level color so the legend marker picks up the rhythm color
+      // (Chart.js' auto-generated legend reads borderColor/backgroundColor
+      //  here, not pointBorderColor/pointBackgroundColor.)
+      borderColor: palette[rhythm],
+      backgroundColor: palette[rhythm] + 'cc'
+    };
+  }).filter(Boolean);
+
+  if (hrData.every(v => v == null) && ekgDatasets.length === 0) {
     emptyHtml('ch-hr', 'No heart rate data yet.');
     return;
   }
@@ -1842,32 +2044,37 @@ function drawHrChart() {
           data: hrData,
           borderColor: t.accent,
           backgroundColor: t.accent + '22',
-          tension: 0.3,
+          borderWidth: dens.line,
+          tension: 0.35,
+          cubicInterpolationMode: 'monotone',
           spanGaps: true,
-          pointRadius: 3,
-          pointHoverRadius: 6,
-          pointBackgroundColor: t.accent
+          pointRadius: dens.point,
+          pointHoverRadius: dens.hover,
+          pointBackgroundColor: t.accent + 'cc',
+          pointBorderColor: t.accent,
+          pointBorderWidth: 1.5,
+          pointHoverBorderWidth: 2
         },
-        {
-          label: 'EKG reading',
-          data: ekgDots,
-          showLine: false,
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          pointStyle: 'rectRot',
-          pointBackgroundColor: ekgColors,
-          pointBorderColor: ekgColors
-        }
+        ...ekgDatasets
       ]
     },
     options: commonOpts(t, {
+      plugins: {
+        legend: legendWithGrayOut(t)
+      },
       tooltip: {
         callbacks: {
-          afterLabel: (ctx) => {
-            if (ctx.datasetIndex !== 1) return '';
-            const d = days[ctx.dataIndex];
-            const list = ekgByDay.get(d) || [];
-            return list.map(e => `${e.rhythm || 'reading'}${asBool(e.symptomatic) ? ' (symptomatic)' : ''}${e.note ? ' — ' + e.note : ''}`);
+          label: (item) => {
+            const ds = item.dataset.label;
+            const v = item.parsed.y;
+            if (ds === 'Resting HR') return `Resting HR: ${v} bpm`;
+            if (ds.startsWith('EKG · ')) {
+              const rhythm = ds.replace('EKG · ', '');
+              const d = days[item.dataIndex];
+              const ev = (ekgByDay.get(d) || []).filter(e => (e.rhythm || 'unclassified') === rhythm)[0];
+              return `${rhythm}${ev && asBool(ev.symptomatic) ? ' (symptomatic)' : ''}: ${v} bpm${ev && ev.note ? ' — ' + ev.note : ''}`;
+            }
+            return `${ds}: ${v}`;
           }
         }
       }
@@ -1896,6 +2103,8 @@ function drawMinutesChart() {
     ),
     backgroundColor: catColors[cat],
     borderColor: catColors[cat],
+    borderWidth: 0,
+    borderRadius: 2,
     stack: 'minutes'
   }));
   if (datasets.every(ds => ds.data.every(v => v === 0))) {
@@ -1913,7 +2122,7 @@ function drawMinutesChart() {
         x: { stacked: true, ticks: { color: t.muted, font: { size: 10 }, maxRotation: 0, autoSkip: true, autoSkipPadding: 16 }, grid: { color: t.line } },
         y: { stacked: true, beginAtZero: true, ticks: { color: t.muted, font: { size: 10 } }, grid: { color: t.line }, title: { display: true, text: 'minutes', color: t.muted, font: { size: 10 } } }
       },
-      plugins: { legend: { display: true, position: 'bottom', labels: { color: t.ink2, font: { size: 11 }, boxWidth: 10 } } }
+      plugins: { legend: legendWithGrayOut(t) }
     })
   });
   chartInstances.set('ch-minutes', chart);
@@ -1921,6 +2130,7 @@ function drawMinutesChart() {
 
 function drawLongestChart() {
   const t = chartTheme();
+  const dens = chartDensity();
   const days = rangeDays();
   const data = days.map(d => dayLongestContinuous(d) || null);
   if (data.every(v => v === null || v === 0)) {
@@ -1940,11 +2150,15 @@ function drawLongestChart() {
         stepped: 'before',
         borderColor: t.accent,
         backgroundColor: t.accent + '22',
+        borderWidth: dens.line,
         fill: true,
         spanGaps: false,
-        pointRadius: 3,
-        pointHoverRadius: 6,
-        pointBackgroundColor: t.accent
+        pointRadius: dens.point,
+        pointHoverRadius: dens.hover,
+        pointBackgroundColor: t.accent + 'cc',
+        pointBorderColor: t.accent,
+        pointBorderWidth: 1.5,
+        pointHoverBorderWidth: 2
       }]
     },
     options: commonOpts(t, {
@@ -1959,6 +2173,7 @@ function drawLongestChart() {
 
 function drawBorgChart() {
   const t = chartTheme();
+  const dens = chartDensity();
   const days = rangeDays();
   // Average Borg per day across programmed activities
   const data = days.map(d => {
@@ -1984,10 +2199,16 @@ function drawBorgChart() {
         data,
         borderColor: t.accent,
         backgroundColor: t.accent + '22',
-        tension: 0.3,
+        borderWidth: dens.line,
+        tension: 0.35,
+        cubicInterpolationMode: 'monotone',
         spanGaps: true,
-        pointRadius: 3,
-        pointBackgroundColor: t.accent
+        pointRadius: dens.point,
+        pointHoverRadius: dens.hover,
+        pointBackgroundColor: t.accent + 'cc',
+        pointBorderColor: t.accent,
+        pointBorderWidth: 1.5,
+        pointHoverBorderWidth: 2
       }]
     },
     options: commonOpts(t, {
@@ -2002,6 +2223,7 @@ function drawBorgChart() {
 
 function drawBsChart() {
   const t = chartTheme();
+  const dens = chartDensity();
   const colors = {
     'fasting':   '#7a9bbd',
     'pre-meal':  '#c9a86a',
@@ -2016,8 +2238,9 @@ function drawBsChart() {
     emptyHtml('ch-bs', 'No blood sugar readings yet.');
     return;
   }
-  // Build a numeric x-axis from epoch ms, and use a callback to format
-  // tick labels — avoids needing the chartjs date adapter at runtime.
+  // Numeric x-axis (epoch ms) with a tick-formatter — avoids needing
+  // chartjs-adapter-date-fns at runtime, and lets us set explicit
+  // min/max so the axis rescales when the range chips change.
   const ctxs = BS_CONTEXTS;
   const datasets = ctxs.map(c => ({
     label: c,
@@ -2028,11 +2251,31 @@ function drawBsChart() {
       whenLabel: fmtDate((p.dateTime || '').slice(0,10)) + ' ' + fmtTime(p.dateTime)
     })),
     borderColor: colors[c],
-    backgroundColor: colors[c] + 'aa',
-    pointRadius: 5,
-    pointHoverRadius: 8,
-    showLine: false
+    backgroundColor: colors[c] + '22',
+    borderWidth: dens.line,
+    pointRadius: dens.point + 1,
+    pointHoverRadius: dens.hover + 1,
+    pointBackgroundColor: colors[c] + 'cc',
+    pointBorderColor: colors[c],
+    pointBorderWidth: 1.5,
+    pointHoverBorderWidth: 2,
+    showLine: true,
+    spanGaps: true,
+    tension: 0.3,
+    cubicInterpolationMode: 'monotone'
   })).filter(ds => ds.data.length > 0);
+
+  // Explicit x-range = the selected range chip, so axis spans the
+  // whole range even if data only covers part of it.
+  const xMin = new Date(cutoff + 'T00:00:00').getTime();
+  const xMax = new Date(todayISO() + 'T23:59:59').getTime();
+
+  // Tick density also flexes with the range — fewer ticks on wider ranges
+  const xTickStep = trendsRange <= 14 ? 2
+                  : trendsRange <= 28 ? 4
+                  : trendsRange <= 90 ? 14
+                  : 30;
+
   destroyChart('ch-bs');
   const ctx = document.getElementById('ch-bs');
   if (!ctx) return;
@@ -2043,8 +2286,11 @@ function drawBsChart() {
       scales: {
         x: {
           type: 'linear',
+          min: xMin,
+          max: xMax,
           ticks: {
             color: t.muted, font: { size: 10 }, maxRotation: 0,
+            autoSkip: true, maxTicksLimit: Math.min(8, Math.ceil(trendsRange / xTickStep)),
             callback: (v) => {
               const d = new Date(v);
               return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -2055,7 +2301,7 @@ function drawBsChart() {
         y: { beginAtZero: false, ticks: { color: t.muted, font: { size: 10 } }, grid: { color: t.line }, title: { display: true, text: 'mg/dL', color: t.muted, font: { size: 10 } } }
       },
       plugins: {
-        legend: { display: true, position: 'bottom', labels: { color: t.ink2, font: { size: 11 }, boxWidth: 8 } },
+        legend: legendWithGrayOut(t, { labels: { boxWidth: 8 } }),
         tooltip: {
           backgroundColor: t.panel,
           titleColor: t.ink,
@@ -2075,6 +2321,7 @@ function drawBsChart() {
 
 function drawWeightChart() {
   const t = chartTheme();
+  const dens = chartDensity();
   const days = rangeDays();
   const byDay = new Map();
   state.vitals.forEach(v => { if (v.date && v.weight != null && v.weight !== '') byDay.set(v.date, safeNum(v.weight)); });
@@ -2095,9 +2342,16 @@ function drawWeightChart() {
         data,
         borderColor: t.accent,
         backgroundColor: t.accent + '22',
-        tension: 0.2,
+        borderWidth: dens.line,
+        tension: 0.35,
+        cubicInterpolationMode: 'monotone',
         spanGaps: true,
-        pointRadius: 3
+        pointRadius: dens.point,
+        pointHoverRadius: dens.hover,
+        pointBackgroundColor: t.accent + 'cc',
+        pointBorderColor: t.accent,
+        pointBorderWidth: 1.5,
+        pointHoverBorderWidth: 2
       }]
     },
     options: commonOpts(t, {
@@ -2132,7 +2386,7 @@ function renderWeeklySnapshotPanel() {
   return `
     <!-- ───── Narrative card — the headline summary ───── -->
     <div class="card narrative-card">
-      <div class="narrative-eyebrow eyebrow">Week of ${escapeHtml(fmtDate(thisMon))}</div>
+      <div class="narrative-eyebrow eyebrow">${escapeHtml(fmtWeekLabel(thisMon))}</div>
 
       <div class="narrative-hero">
         <div class="hero-num">${narrative.heroNum}</div>
@@ -2198,7 +2452,7 @@ function renderWeeklySnapshotPanel() {
         <tbody>
           ${weeks.map(w => `
             <tr>
-              <td>${escapeHtml(fmtDate(w.weekStart))}</td>
+              <td>${escapeHtml(fmtWeekStart(w.weekStart))}</td>
               <td class="num">${w.daysActive || '–'}</td>
               <td class="num">${w.longestContinuous || '–'}</td>
               <td class="num">${w.totalProgrammed || '–'}</td>
@@ -2386,7 +2640,13 @@ function renderSettings() {
   const c = state.config;
   const medList = (c.medications || []).join('\n');
   root.innerHTML = `
-    <h2 class="view-title">Settings</h2>
+    <div class="settings-bar">
+      <button class="icon-btn" onclick="switchView('today')" aria-label="Back" title="Back">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <h2 class="settings-title">Settings</h2>
+      <button class="btn primary settings-save" onclick="saveSettings()">Save</button>
+    </div>
 
     <div class="card">
       <h4 style="margin-top:0;">Current stage</h4>
@@ -2508,8 +2768,13 @@ function renderSettings() {
       <p class="small" style="margin-top:8px;">JSON is the full backup. CSV gives one file per tab, suitable for spreadsheets.</p>
     </div>
 
-    <div class="btn-row right" style="margin-top:18px;">
-      <button class="btn primary" onclick="saveSettings()">Save settings</button>
+    <div class="card">
+      <h4 style="margin-top:0;">Demo data</h4>
+      <p class="small">Loads ~6 weeks of fake data so you can see how the day strip, the staircase chart, and the weekly summary will look once entries pile up. Stays on this device — does NOT sync to the Google Sheet.</p>
+      <div class="btn-row">
+        <button class="btn" onclick="loadDemoData()">Load demo data</button>
+        <button class="btn ghost" onclick="clearDemoData()">Clear demo data</button>
+      </div>
     </div>
 
     <div class="spacer-lg"></div>
@@ -2635,6 +2900,224 @@ function triggerDownload(blob, name) {
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 100);
 }
 
+/* ─── Demo data — for visualizing the app before real entries exist ───
+ * Loads ~6 weeks of believable entries showing a trajectory through
+ * Stage 0 → 1 → 2: pool sessions whose "longest continuous" climbs,
+ * Borg holding steady (= work feeling relatively easier), a couple of
+ * symptom events so the EKG dots and the narrative can react.
+ *
+ * Demo entries are marked `_demo: true` and are NEVER synced to the
+ * sheet — they stay in localStorage only and can be wiped in one click.
+ */
+function loadDemoData() {
+  const existing = state.vitals.length + state.activity.length + state.ekg.length + state.bloodSugar.length;
+  const msg = existing > 0
+    ? 'Add ~6 weeks of demo data on top of what you already have? You can clear it later. Demo entries are local only — they will NOT sync to the Google Sheet.'
+    : 'Load ~6 weeks of demo data so you can see how the charts and weekly summary will look? Stays on this device — does not sync.';
+  if (!confirm(msg)) return;
+
+  const today = todayISO();
+  const start = addDays(today, -41);   // 6 weeks back, inclusive
+  const demoRestDays = [];
+
+  // Tiny seeded PRNG so the demo is deterministic across loads
+  let seed = 12345;
+  const rand = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+
+  const push = (type, rec) => {
+    rec.id = uuid();
+    rec.updatedAt = nowIso();
+    rec.createdAt = rec.updatedAt;
+    rec._demo = true;
+    state[type].push(rec);
+  };
+
+  for (let i = 0; i <= 41; i++) {
+    const date = addDays(start, i);
+    const dow = dayOfWeek(date);
+    const isSunday    = dow === 0;
+    const isMonWedFri = dow === 1 || dow === 3 || dow === 5;
+    const isTueThu    = dow === 2 || dow === 4;
+    const isSaturday  = dow === 6;
+
+    /* Morning vitals — most days. HR drifts down a touch over time
+       (mild conditioning effect), with one symptomatic morning early on. */
+    if (rand() > 0.12) {
+      const hrBase = 52 - (i / 41) * 4;
+      const hr = Math.round(hrBase + (rand() - 0.5) * 6);
+      push('vitals', {
+        date,
+        restingHR: hr,
+        dizzy: i === 4,
+        swelling: false,
+        breathing: false,
+        symptomNote: i === 4 ? 'Felt lightheaded standing from a chair this morning' : ''
+      });
+    }
+
+    /* Activity — stage-appropriate */
+    if (i < 7) {
+      // STAGE 0: baseline. Mostly daily activities + a couple of short pool sessions.
+      if (rand() > 0.3) {
+        push('activity', {
+          date, category: 'daily',
+          subtypes: rand() > 0.5 ? ['Housework'] : ['Caring for the cats'],
+          totalMinutes: 20 + Math.round(rand() * 30),
+          rounds: 1, minutesPerRound: 20,
+          isProgrammed: false, note: ''
+        });
+      }
+      if (i === 1 || i === 4) {
+        push('activity', {
+          date, category: 'pool',
+          subtypes: ['Water walking'],
+          totalMinutes: 9, rounds: 3, minutesPerRound: 3, restBetweenMin: 2,
+          borg: 11, talkTestOK: true, feeling: 4,
+          isProgrammed: true, note: ''
+        });
+      }
+    } else if (i < 21) {
+      // STAGE 1: structured week — 3 pool, 2 strength, Sat free, Sun rest.
+      if (isSunday) demoRestDays.push(date);
+      else if (isMonWedFri) {
+        const mpr = 3 + Math.floor((i - 7) / 5);   // 3 → 5 min/round over two weeks
+        const noteVariant = (i === 14) ? 'First time I forgot to count rounds because I was chatting with someone in the pool' : '';
+        push('activity', {
+          date, category: 'pool',
+          subtypes: ['Water walking'].concat(i > 14 ? ['Gentle marching'] : []),
+          totalMinutes: mpr * 3, rounds: 3, minutesPerRound: mpr, restBetweenMin: 2,
+          borg: 11, talkTestOK: true, feeling: 4,
+          isProgrammed: true, note: noteVariant
+        });
+      } else if (isTueThu) {
+        push('activity', {
+          date, category: 'strength',
+          subtypes: ['Sit-to-stands', 'Heel raises', 'Ankle pumps'],
+          totalMinutes: 12, rounds: 1, minutesPerRound: 12,
+          borg: 10, talkTestOK: true, feeling: 4,
+          isProgrammed: true, note: ''
+        });
+      }
+    } else {
+      // STAGE 2: same shape, longer continuous + a Saturday outdoor walk.
+      if (isSunday) demoRestDays.push(date);
+      else if (isMonWedFri) {
+        const mpr = 8 + Math.floor((i - 21) / 7);  // 8 → 11 min/round
+        push('activity', {
+          date, category: 'pool',
+          subtypes: ['Water walking', 'Gentle marching', 'Slow arm sweeps'],
+          totalMinutes: mpr * 2, rounds: 2, minutesPerRound: mpr, restBetweenMin: 1,
+          borg: 11 + (rand() > 0.75 ? 1 : 0),
+          talkTestOK: true,
+          feeling: 4 + (rand() > 0.5 ? 1 : 0),
+          isProgrammed: true,
+          note: i === 35 ? 'Felt actually easy today' : ''
+        });
+      } else if (isTueThu) {
+        push('activity', {
+          date, category: 'strength',
+          subtypes: ['Sit-to-stands', 'Heel raises', 'Wall push-ups', 'Standing hip lifts'],
+          totalMinutes: 18, rounds: 2, minutesPerRound: 9,
+          borg: 11, talkTestOK: true, feeling: 4,
+          isProgrammed: true, note: ''
+        });
+      } else if (isSaturday && rand() > 0.45) {
+        push('activity', {
+          date, category: 'walking',
+          subtypes: ['Outdoor walking'],
+          totalMinutes: 15, rounds: 1, minutesPerRound: 15,
+          borg: 11, talkTestOK: true, feeling: 5,
+          isProgrammed: true, note: 'Around the block twice — felt great'
+        });
+      }
+    }
+
+    /* EKG — morning baseline most days, plus one symptomatic afib reading
+       early on and one device-flagged unclassified mid-cycle. */
+    if (rand() > 0.4) {
+      const hr = 48 + Math.round(rand() * 8);
+      push('ekg', {
+        dateTime: date + 'T07:30:00',
+        rate: hr,
+        rhythm: i === 4 ? 'afib' : (i === 18 ? 'unclassified' : 'normal'),
+        symptomatic: i === 4,
+        note: i === 4 ? 'Took this right after feeling lightheaded — sent to cardiologist' :
+              i === 18 ? 'Device flagged but I felt fine' : ''
+      });
+    }
+
+    /* Blood sugar — 1–3 readings per day across contexts */
+    if (rand() > 0.2) {
+      push('bloodSugar', {
+        dateTime: date + 'T07:00:00',
+        value: 96 + Math.round(rand() * 22),
+        context: 'fasting', note: ''
+      });
+    }
+    if (rand() > 0.5) {
+      push('bloodSugar', {
+        dateTime: date + 'T13:30:00',
+        value: 145 + Math.round(rand() * 40),
+        context: 'post-meal', note: ''
+      });
+    }
+    if (rand() > 0.6) {
+      push('bloodSugar', {
+        dateTime: date + 'T22:00:00',
+        value: 108 + Math.round(rand() * 28),
+        context: 'bedtime', note: ''
+      });
+    }
+  }
+
+  /* Weekly stage decisions to show what the history looks like */
+  const wk2 = mondayOf(addDays(today, -28));
+  const wk3 = mondayOf(addDays(today, -21));
+  const wk5 = mondayOf(addDays(today, -7));
+  push('stageDecisions', {
+    weekStartDate: wk2, stage: 1, choice: 'hold',
+    criteriaTicked: [true, true, false, false],
+    note: 'Feeling steady but want another week at Stage 1'
+  });
+  push('stageDecisions', {
+    weekStartDate: wk3, stage: 1, choice: 'advance',
+    criteriaTicked: [true, true, true, true],
+    note: 'Talked with cardiologist, cleared to lengthen sessions'
+  });
+  push('stageDecisions', {
+    weekStartDate: wk5, stage: 2, choice: 'hold',
+    criteriaTicked: [true, false, true, true],
+    note: ''
+  });
+
+  /* Merge config bits — directly, NOT via setConfig (we don't want
+     these queued for sync since they're demo). */
+  state.config.restDays = [...(state.config.restDays || []), ...demoRestDays];
+  state.config._demoRestDays = demoRestDays;
+  state.config.currentStage = 2;
+  if (!state.config.weeklyGoal) state.config.weeklyGoal = '3 pool days, 2 strength days';
+
+  saveState();
+  alert('Demo data loaded.\n\nTap Today to see the day strip and streak, then Trends → Weekly snapshot for the auto-generated summary.');
+  renderActiveView();
+}
+
+function clearDemoData() {
+  const demoCount = ['vitals','activity','ekg','bloodSugar','stageDecisions']
+    .reduce((s, t) => s + state[t].filter(r => r._demo).length, 0);
+  if (demoCount === 0) { alert('No demo data to clear.'); return; }
+  if (!confirm(`Remove ${demoCount} demo entries? Real entries you've logged will be kept.`)) return;
+  ['vitals','activity','ekg','bloodSugar','stageDecisions'].forEach(t => {
+    state[t] = state[t].filter(r => !r._demo);
+  });
+  const demoRest = state.config._demoRestDays || [];
+  state.config.restDays = (state.config.restDays || []).filter(d => !demoRest.includes(d));
+  state.config._demoRestDays = [];
+  saveState();
+  alert('Demo data cleared.');
+  renderActiveView();
+}
+
 function importJson(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -2702,7 +3185,7 @@ function openPrintView(weekStartIso) {
     </div>
 
     <h2 class="view-title">Weekly summary</h2>
-    <p>Week of ${escapeHtml(fmtDate(ws))} — ${escapeHtml(fmtDate(addDays(ws, 6)))}</p>
+    <p>Week of ${escapeHtml(fmtWeekRange(ws))}</p>
     <p>Stage ${stage.n} — ${escapeHtml(stage.title)} · Effort target Borg ${escapeHtml(stage.borg)}</p>
 
     <h3>At a glance</h3>
@@ -2803,6 +3286,31 @@ function renderSafety() {
 
     <div class="card soft small italic">
       Still your doctor's call, not the plan's: any beta-blocker change, and diabetes precautions around exercise (hydration, low blood sugar, foot care near the pool).
+    </div>
+
+    <h3>References</h3>
+    <div class="card">
+      <p class="small">The stages, effort scale, talk test, warm-up/cool-down menu, and the check-in thresholds in this app are drawn from these sources:</p>
+      <ol class="ref-list">
+        <li>
+          <strong>Bozkurt B, Fonarow GC, Goldberg LR, et al.</strong>
+          <em>Cardiac Rehabilitation for Patients With Heart Failure: JACC Expert Panel.</em>
+          Journal of the American College of Cardiology. 2021;77(11):1454–1469.
+          <a href="https://doi.org/10.1016/j.jacc.2021.01.030" target="_blank" rel="noopener">doi:10.1016/j.jacc.2021.01.030</a>
+        </li>
+        <li>
+          <strong>Tucker WJ, Fegers-Wustrow I, Halle M, et al.</strong>
+          <em>Exercise for Primary and Secondary Prevention of Cardiovascular Disease: JACC Focus Seminar 1/4.</em>
+          Journal of the American College of Cardiology. 2022;80(11):1091–1106.
+          <a href="https://doi.org/10.1016/j.jacc.2022.07.004" target="_blank" rel="noopener">doi:10.1016/j.jacc.2022.07.004</a>
+        </li>
+        <li>
+          Your personalized <em>Progressive Activity Plan</em> and <em>Activity Workbook &amp; Log</em>, written for your situation in consultation with your care team.
+        </li>
+      </ol>
+      <p class="small italic" style="margin-top:14px;">
+        This app records and visualizes — it does not diagnose, prescribe, or replace direct medical guidance. Any change to medication, intensity ceilings, or progression timing belongs with your cardiologist.
+      </p>
     </div>
 
     <div class="spacer-lg"></div>
@@ -2960,7 +3468,9 @@ const STAGES = [
       'Brief faster-walk intervals',
       'Side-stepping',
       'Gentle high-knee marching',
-      'Combined arm + leg moves'
+      'Combined arm + leg moves',
+      'Laps for longer endurance stretches',
+      'Treading water (chest-deep, brief intervals)'
     ],
     land: [
       'Light band: seated press, light resistance',
@@ -2990,7 +3500,9 @@ const STAGES = [
       'Variety and enjoyment built in'
     ],
     aquatic: [
-      'Mix of all the earlier moves for variety'
+      'Mix of all the earlier moves for variety',
+      'Laps for endurance',
+      'Treading water in shallow / chest-deep water'
     ],
     land: [
       '~2 days/week strength + balance'
@@ -3016,9 +3528,9 @@ const ACTIVITY_CATEGORIES = {
     label: 'Pool',
     programmed: true,
     subtypes: [
-      'Water walking', 'Side-stepping', 'Gentle marching',
+      'Water walking', 'Laps', 'Side-stepping', 'Gentle marching',
       'Slow arm sweeps', 'Gentle leg swings', 'Faster-walk interval',
-      'Combined arm + leg moves', 'Other'
+      'Combined arm + leg moves', 'Treading water', 'Other'
     ]
   },
   walking: {
@@ -3932,7 +4444,7 @@ function openStageDecision(weekStartIso) {
   const ticked = existing ? (Array.isArray(existing.criteriaTicked) ? existing.criteriaTicked : safeParseArray(existing.criteriaTicked)) : new Array(stage.advance.length).fill(false);
   const html = `
     <div class="modal-head">
-      <h2>Stage decision · week of ${escapeHtml(fmtDate(weekStartIso))}</h2>
+      <h2>Stage decision · ${escapeHtml(fmtWeekLabel(weekStartIso))}</h2>
       <button class="icon-btn" onclick="closeModal()" aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
