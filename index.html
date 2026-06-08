@@ -25,7 +25,76 @@
    No reds, no fire emojis. Reminders are amber and gentle.
    ============================================================= */
 :root {
-  /* Surface — warm low-saturation paper */
+  /* Default theme — off-white with a hint of warmth.
+     Between warm-paper and soft-white. */
+  --bg: #f3f1ec;
+  --panel: #faf8f3;
+  --panel-2: #eae7df;
+  --panel-3: #ddd9cd;
+  --ink: #26292f;
+  --ink-2: #4d525a;
+  --muted: #888d93;
+  --line: #e0ddd2;
+  --line-2: #c8c3b6;
+
+  --accent: #5e8a8e;
+  --accent-soft: #e1ecec;
+  --accent-deep: #3d6669;
+
+  --c-programmed: #5e8a8e;
+  --c-light:      #b6c3b1;
+  --c-rest:       #d2b48a;
+  --c-empty:      #d8d3c5;
+
+  --signal: #c9883a;
+  --signal-bg: #f5ecd9;
+  --signal-ink: #7a572a;
+  --success: #6a8a5e;
+
+  --shadow: 0 1px 2px rgba(38,41,47,.05), 0 6px 20px rgba(38,41,47,.06);
+  --shadow-pop: 0 2px 6px rgba(38,41,47,.08), 0 16px 40px rgba(38,41,47,.10);
+
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-lg: 22px;
+
+  /* Font families — jobmap design language */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino", "Georgia", serif;
+  --font-mono: ui-monospace, "SF Mono", "Menlo", "Consolas", monospace;
+
+  /* Type scale — every UI element picks from this set.
+     Display: serif. Body: sans. Eyebrow/caption: mono caps. */
+  --fs-display-lg: 28px;   /* view title          (serif) */
+  --fs-display:    22px;   /* h3 / modal heading  (serif) */
+  --fs-title:      15px;   /* card title          (sans 500) */
+  --fs-body:       15px;   /* paragraphs / inputs / toggle labels */
+  --fs-body-sm:    13px;   /* secondary / helpers */
+  --fs-eyebrow:    11px;   /* form-field labels, section captions (mono caps) */
+  --fs-caption:    10px;   /* chips, smallest meta (mono caps) */
+
+  --ls-display: -0.01em;
+  --ls-eyebrow: 0.1em;
+  --ls-caption: 0.08em;
+
+  /* Consistent vertical rhythm */
+  --gap-field: 18px;   /* between form fields */
+  --gap-row:   10px;   /* between toggle rows / chips */
+
+  --tap: 48px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Backward-compat aliases for the old name set.
+     New code should use --fs-display-lg / --fs-display / --fs-title /
+     --fs-body / --fs-body-sm / --fs-eyebrow / --fs-caption directly. */
+  --fs:    var(--fs-body);
+  --fs-sm: var(--fs-body-sm);
+  --fs-lg: 17px;
+  --fs-xl: var(--fs-display);
+}
+
+/* Theme: Warm paper — original, slightly more saturated than default */
+body.theme-warm {
   --bg: #f6f3ec;
   --panel: #fbfaf6;
   --panel-2: #efece2;
@@ -35,44 +104,20 @@
   --muted: #8a8f96;
   --line: #e6e1d3;
   --line-2: #cfc8b6;
-
-  /* One muted teal accent */
   --accent: #5e8a8e;
   --accent-soft: #e6efef;
   --accent-deep: #3d6669;
-
-  /* Day-strip + status — distinct hues, all low chroma */
-  --c-programmed: #5e8a8e;    /* spa teal — did the plan */
-  --c-light:      #b9c8b3;    /* sage — vitals/ADL only */
-  --c-rest:       #d2b48a;    /* sand — planned rest, kept */
-  --c-empty:      #e2dccb;    /* paper — nothing logged */
-
-  /* Gentle signal colors — never red */
-  --signal: #c9883a;          /* amber for plan check-in reminders */
+  --c-programmed: #5e8a8e;
+  --c-light: #b9c8b3;
+  --c-rest: #d2b48a;
+  --c-empty: #e2dccb;
+  --signal: #c9883a;
   --signal-bg: #faf2e6;
   --signal-ink: #7e5a2c;
   --success: #6a8a5e;
-
-  --radius: 14px;
-  --radius-sm: 8px;
-  --radius-lg: 22px;
-  --shadow: 0 1px 2px rgba(44,49,56,.05), 0 6px 20px rgba(44,49,56,.06);
-  --shadow-pop: 0 2px 6px rgba(44,49,56,.08), 0 16px 40px rgba(44,49,56,.10);
-
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
-  --font-serif: "Iowan Old Style", "Palatino", "Georgia", serif;
-
-  --fs: 15px;
-  --fs-sm: 13px;
-  --fs-lg: 18px;
-  --fs-xl: 22px;
-  --fs-display: 28px;
-
-  --tap: 48px;  /* min tap target */
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Themes */
+/* Theme: Soft white — cool neutrals */
 body.theme-soft {
   --bg: #f5f5f7;
   --panel: #ffffff;
@@ -84,21 +129,43 @@ body.theme-soft {
   --line: #e6e6ec;
   --line-2: #d0d0d8;
   --accent: #4e7d8e;
-  --accent-soft: #e6eef2;
+  --accent-soft: #e3eef2;
+  --accent-deep: #2d5a6b;
+  --c-programmed: #4e7d8e;
+  --c-light: #b3c2bd;
+  --c-rest: #c9aa7e;
+  --c-empty: #d8d8df;
+  --signal: #c9883a;
+  --signal-bg: #f7eed7;
+  --signal-ink: #7a572a;
+  --success: #6a8a6e;
 }
+
+/* Theme: High contrast — for low-vision use */
 body.theme-contrast {
   --bg: #ffffff;
   --panel: #ffffff;
-  --panel-2: #f2f2f2;
-  --panel-3: #e0e0e0;
+  --panel-2: #f1f1f1;
+  --panel-3: #dedede;
   --ink: #111111;
-  --ink-2: #333333;
+  --ink-2: #2b2b2b;
   --muted: #555555;
-  --line: #cccccc;
-  --line-2: #999999;
+  --line: #c8c8c8;
+  --line-2: #8d8d8d;
   --accent: #1f5a63;
-  --accent-soft: #d0e0e3;
+  --accent-soft: #c4dde0;
+  --accent-deep: #0d3a44;
+  --c-programmed: #1f5a63;
+  --c-light: #6b8a8e;
+  --c-rest: #a87340;
+  --c-empty: #b8b8b8;
+  --signal: #8a4e0e;
+  --signal-bg: #f5e2c4;
+  --signal-ink: #5a3208;
+  --success: #2f5e22;
 }
+
+/* Theme: Dark mode — warm dark with cream ink */
 body.theme-dark {
   --bg: #1d1f23;
   --panel: #25282d;
@@ -110,20 +177,30 @@ body.theme-dark {
   --line: #3a3e44;
   --line-2: #4d5158;
   --accent: #88b3b8;
-  --accent-soft: #2f3a3b;
+  --accent-soft: #2c3a3b;
   --accent-deep: #b0d0d4;
   --c-programmed: #88b3b8;
   --c-light: #9bb29a;
   --c-rest: #c4a276;
   --c-empty: #3a3e44;
+  --signal: #d0a368;
   --signal-bg: #3a3329;
   --signal-ink: #e8c997;
+  --success: #9ab685;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
   --shadow-pop: 0 2px 6px rgba(0,0,0,.35), 0 16px 40px rgba(0,0,0,.4);
 }
 
-body.text-large { --fs: 17px; --fs-sm: 15px; --fs-lg: 20px; --fs-xl: 24px; --fs-display: 30px; }
-body.text-xlarge { --fs: 19px; --fs-sm: 16px; --fs-lg: 22px; --fs-xl: 27px; --fs-display: 34px; }
+body.text-large {
+  --fs-body: 17px; --fs-body-sm: 15px; --fs-title: 17px;
+  --fs-display: 24px; --fs-display-lg: 30px;
+  --fs-eyebrow: 12px; --fs-caption: 11px;
+}
+body.text-xlarge {
+  --fs-body: 19px; --fs-body-sm: 16px; --fs-title: 19px;
+  --fs-display: 26px; --fs-display-lg: 34px;
+  --fs-eyebrow: 13px; --fs-caption: 12px;
+}
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body {
@@ -194,9 +271,15 @@ html, body {
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
 #sync-status {
-  font-size: var(--fs-sm); color: var(--muted);
-  display: flex; align-items: center; gap: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caption);
+  color: var(--muted);
+  display: flex; align-items: center; gap: 6px;
+  cursor: default;
 }
+#sync-status #sync-text { line-height: 1; }
 
 /* ---------- Main views ---------- */
 main {
@@ -210,26 +293,48 @@ main {
 
 h2.view-title {
   font-family: var(--font-serif);
-  font-size: var(--fs-display);
+  font-size: var(--fs-display-lg);
   font-weight: 500;
-  margin: 10px 0 18px;
-  letter-spacing: -0.01em;
+  margin: 10px 0 22px;
+  letter-spacing: var(--ls-display);
+  line-height: 1.1;
 }
 h3 {
   font-family: var(--font-serif);
-  font-size: var(--fs-xl);
+  font-size: var(--fs-display);
   font-weight: 500;
   margin: 28px 0 12px;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--ls-display);
+  line-height: 1.15;
 }
 h4 {
-  font-size: var(--fs);
+  font-family: var(--font-sans);
+  font-size: var(--fs-title);
   font-weight: 600;
   margin: 18px 0 8px;
   color: var(--ink);
+  line-height: 1.25;
 }
-p { margin: 0 0 12px; color: var(--ink-2); }
-small, .small { font-size: var(--fs-sm); color: var(--muted); }
+p { margin: 0 0 12px; color: var(--ink-2); font-size: var(--fs-body); }
+small, .small { font-size: var(--fs-body-sm); color: var(--muted); }
+
+/* Eyebrow / caption utility classes — jobmap pattern */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-eyebrow);
+  color: var(--muted);
+  font-weight: 500;
+}
+.caption {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caption);
+  color: var(--muted);
+  font-weight: 400;
+}
 
 /* ---------- Cards ---------- */
 .card {
@@ -242,11 +347,12 @@ small, .small { font-size: var(--fs-sm); color: var(--muted); }
 }
 .card.soft { background: var(--panel-2); box-shadow: none; }
 .card-title {
-  font-size: var(--fs-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--ls-eyebrow);
   color: var(--muted);
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-weight: 500;
 }
 
@@ -385,27 +491,37 @@ button.big {
 }
 
 /* ---------- Form inputs ---------- */
-label.field {
+/* Every form field — input group, chip group, toggle group — uses the
+   same outer rhythm: 18px margin between groups, eyebrow-style label
+   above the content, 8px gap between label and content. */
+label.field, .field {
   display: block;
-  margin-bottom: 14px;
+  margin-bottom: var(--gap-field);
 }
-label.field > .lbl {
+label.field > .lbl,
+.field > .lbl {
   display: block;
-  font-size: var(--fs-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
   font-weight: 500;
-  margin-bottom: 6px;
-  color: var(--ink-2);
-}
-label.field > .help {
-  display: block;
-  font-size: var(--fs-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-eyebrow);
   color: var(--muted);
-  margin-top: 4px;
+  margin-bottom: 10px;
+}
+label.field > .help,
+.field > .help {
+  display: block;
+  font-size: var(--fs-body-sm);
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.4;
 }
 input[type="text"], input[type="number"], input[type="date"],
 input[type="datetime-local"], input[type="time"], input[type="url"],
 select, textarea {
-  font: inherit;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--line-2);
@@ -421,15 +537,30 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-/* Toggle pill switch */
+/* Toggle pill switch — sits inside a .field group, evenly spaced */
 .toggle {
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px;
-  padding: 10px 0;
+  padding: 12px 0;
   cursor: pointer;
   min-height: var(--tap);
+  border-top: 1px solid var(--line);
 }
-.toggle .lbl { flex: 1; }
+.field > .toggle:first-of-type,
+.toggle:first-child,
+.field > .lbl + .toggle {
+  border-top: none;
+}
+.toggle .lbl {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  color: var(--ink);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  margin: 0;
+}
 .toggle .switch {
   position: relative;
   width: 44px; height: 26px;
@@ -445,7 +576,7 @@ input:focus, select:focus, textarea:focus {
   width: 20px; height: 20px;
   border-radius: 50%;
   background: white;
-  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
   transition: left 0.18s;
 }
 .toggle input { display: none; }
@@ -566,8 +697,9 @@ input:focus, select:focus, textarea:focus {
 .modal-head h2 {
   margin: 0;
   font-family: var(--font-serif);
-  font-size: var(--fs-xl);
+  font-size: var(--fs-display);
   font-weight: 500;
+  letter-spacing: var(--ls-display);
 }
 .modal-body {
   overflow-y: auto;
@@ -1745,11 +1877,17 @@ function drawBsChart() {
     emptyHtml('ch-bs', 'No blood sugar readings yet.');
     return;
   }
-  // Group by context for separate datasets
+  // Build a numeric x-axis from epoch ms, and use a callback to format
+  // tick labels — avoids needing the chartjs date adapter at runtime.
   const ctxs = BS_CONTEXTS;
   const datasets = ctxs.map(c => ({
     label: c,
-    data: points.filter(p => p.context === c).map(p => ({ x: p.dateTime, y: safeNum(p.value), note: p.note })),
+    data: points.filter(p => p.context === c).map(p => ({
+      x: new Date(p.dateTime).getTime(),
+      y: safeNum(p.value),
+      note: p.note,
+      whenLabel: fmtDate((p.dateTime || '').slice(0,10)) + ' ' + fmtTime(p.dateTime)
+    })),
     borderColor: colors[c],
     backgroundColor: colors[c] + 'aa',
     pointRadius: 5,
@@ -1764,13 +1902,31 @@ function drawBsChart() {
     data: { datasets },
     options: commonOpts(t, {
       scales: {
-        x: { type: 'time', time: { unit: trendsRange <= 14 ? 'day' : (trendsRange <= 60 ? 'day' : 'week') }, ticks: { color: t.muted, font: { size: 10 }, maxRotation: 0 }, grid: { color: t.line } },
+        x: {
+          type: 'linear',
+          ticks: {
+            color: t.muted, font: { size: 10 }, maxRotation: 0,
+            callback: (v) => {
+              const d = new Date(v);
+              return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            }
+          },
+          grid: { color: t.line }
+        },
         y: { beginAtZero: false, ticks: { color: t.muted, font: { size: 10 } }, grid: { color: t.line }, title: { display: true, text: 'mg/dL', color: t.muted, font: { size: 10 } } }
       },
-      plugins: { legend: { display: true, position: 'bottom', labels: { color: t.ink2, font: { size: 11 }, boxWidth: 8 } } },
-      tooltip: {
-        callbacks: {
-          label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.y}${ctx.raw.note ? ' — ' + ctx.raw.note : ''}`
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { color: t.ink2, font: { size: 11 }, boxWidth: 8 } },
+        tooltip: {
+          backgroundColor: t.panel,
+          titleColor: t.ink,
+          bodyColor: t.ink2,
+          borderColor: t.line,
+          borderWidth: 1,
+          callbacks: {
+            title: (items) => items.length ? items[0].raw.whenLabel : '',
+            label: (item) => `${item.dataset.label}: ${item.raw.y}${item.raw.note ? ' — ' + item.raw.note : ''}`
+          }
         }
       }
     })
@@ -2024,7 +2180,8 @@ function renderSettings() {
       <label class="field">
         <span class="lbl">Theme</span>
         <select id="cfg-theme">
-          <option value="warm" ${c.theme==='warm'?'selected':''}>Warm paper (default)</option>
+          <option value="default" ${(!c.theme || c.theme==='default')?'selected':''}>Off-white (default)</option>
+          <option value="warm" ${c.theme==='warm'?'selected':''}>Warm paper</option>
           <option value="soft" ${c.theme==='soft'?'selected':''}>Soft white</option>
           <option value="contrast" ${c.theme==='contrast'?'selected':''}>High contrast</option>
           <option value="dark" ${c.theme==='dark'?'selected':''}>Dark mode</option>
@@ -2109,11 +2266,15 @@ function saveSettings() {
 
 function applyAppearance() {
   document.body.className = '';
-  if (state.config.theme && state.config.theme !== 'warm') {
+  if (state.config.theme && state.config.theme !== 'default') {
     document.body.classList.add('theme-' + state.config.theme);
   }
   if (state.config.textSize && state.config.textSize !== 'normal') {
     document.body.classList.add('text-' + state.config.textSize);
+  }
+  // Trigger a chart re-render so they pick up new theme colors
+  if (activeView === 'trends' && trendsTab === 'charts') {
+    setTimeout(() => { try { drawAllCharts(); } catch(e) {} }, 0);
   }
 }
 
@@ -2152,18 +2313,21 @@ function downloadJson() {
 }
 
 function downloadCsv() {
-  // One CSV per type, zipped via a simple text bundle (separate files would
-  // need a zip lib). Easier: download each separately, one click per file.
-  ['vitals','activity','ekg','bloodSugar','stageDecisions'].forEach(type => {
+  // One CSV per type. Stagger downloads ~300ms apart so browsers don't
+  // treat the rapid succession as a popup-spam pattern and block them.
+  const types = ['vitals','activity','ekg','bloodSugar','stageDecisions'];
+  types.forEach((type, i) => {
     const rows = state[type];
     if (rows.length === 0) return;
-    const headers = Array.from(new Set(rows.flatMap(r => Object.keys(r))));
-    const csv = [
-      headers.join(','),
-      ...rows.map(r => headers.map(h => csvCell(r[h])).join(','))
-    ].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    triggerDownload(blob, `conditioning-${type}-${todayISO()}.csv`);
+    setTimeout(() => {
+      const headers = Array.from(new Set(rows.flatMap(r => Object.keys(r))));
+      const csv = [
+        headers.join(','),
+        ...rows.map(r => headers.map(h => csvCell(r[h])).join(','))
+      ].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      triggerDownload(blob, `conditioning-${type}-${todayISO()}.csv`);
+    }, i * 300);
   });
 }
 function csvCell(v) {
@@ -2670,7 +2834,7 @@ const DEFAULT_CONFIG = {
   weightTrackingEnabled: false,
   weightBaselineLb: null,
   medsTrackingEnabled: false,
-  theme: 'warm',          // warm | soft | contrast | dark
+  theme: 'default',       // default | warm | soft | contrast | dark
   textSize: 'normal',     // normal | large | xlarge
   firstRunComplete: false,
   restDays: [],           // array of YYYY-MM-DD she has marked as planned rest
@@ -2868,12 +3032,850 @@ function updateSyncIndicator(status, msg) {
   dot.className = '';
   dot.classList.add(status);
   const pending = state.unsynced.length;
-  if (status === 'synced')   text.textContent = '';
-  else if (status === 'syncing') text.textContent = pending ? `${pending}…` : '';
-  else if (status === 'offline') text.textContent = pending ? `${pending} pending` : '';
-  else if (status === 'error')   text.textContent = pending ? `${pending} retry` : 'retry';
-  if (msg) dot.title = msg;
+  // Keep this gentle — never raw counts. Status word only, and only
+  // when there's something worth saying.
+  if (status === 'synced')        text.textContent = '';
+  else if (status === 'syncing')  text.textContent = 'saving';
+  else if (status === 'offline')  text.textContent = state.config.sheetUrl ? 'offline' : '';
+  else if (status === 'error')    text.textContent = 'retry';
+  // Hover tooltip still shows pending count for diagnosis
+  const reason = msg ? ` — ${msg}` : '';
+  const pendingNote = pending ? ` · ${pending} entr${pending===1?'y':'ies'} waiting` : '';
+  dot.title =
+    status === 'synced'  ? 'Synced to Google Sheet' + pendingNote :
+    status === 'syncing' ? 'Saving…' + pendingNote :
+    status === 'offline' ? (state.config.sheetUrl ? 'Offline — entries saved on this device' + pendingNote : 'Not connected to a sheet — entries stay on this device') :
+    status === 'error'   ? 'Sync paused, will retry' + reason + pendingNote :
+    '';
 }
 </script>
+
+<script>
+/* ─── 6. Modal infrastructure ───────────────────────────────────── */
+
+let modalEscHandler = null;
+
+function openModal(html, opts = {}) {
+  const mount = document.getElementById('modal-mount');
+  const full = opts.full ? 'full' : '';
+  mount.innerHTML = `
+    <div class="modal-backdrop open" onclick="if(event.target===this) closeModal()">
+      <div class="modal ${full}" role="dialog" aria-modal="true">${html}</div>
+    </div>
+  `;
+  modalEscHandler = (e) => { if (e.key === 'Escape') closeModal(); };
+  document.addEventListener('keydown', modalEscHandler);
+}
+
+function closeModal() {
+  document.getElementById('modal-mount').innerHTML = '';
+  if (modalEscHandler) document.removeEventListener('keydown', modalEscHandler);
+  modalEscHandler = null;
+}
+
+/* ─── 6a. Log forms ─────────────────────────────────────────────── */
+
+function openLog(type, prefill) {
+  if (type === 'vitals')     return openVitalsForm(prefill);
+  if (type === 'activity')   return openActivityForm(prefill);
+  if (type === 'ekg')        return openEkgForm(prefill);
+  if (type === 'bloodSugar') return openBloodSugarForm(prefill);
+}
+
+/** VITALS */
+function openVitalsForm(prefill) {
+  const r = prefill || { date: todayISO() };
+  const c = state.config;
+  const html = `
+    <div class="modal-head">
+      <h2>${prefill ? 'Edit' : ''} Morning vitals</h2>
+      <button class="icon-btn" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field">
+        <span class="lbl">Date</span>
+        <input type="date" id="f-date" value="${escapeHtml(r.date || todayISO())}" />
+      </label>
+      <label class="field">
+        <span class="lbl">Resting heart rate (bpm)</span>
+        <input type="number" inputmode="numeric" id="f-hr" value="${escapeHtml(r.restingHR ?? '')}" placeholder="e.g., 48" />
+      </label>
+      ${c.weightTrackingEnabled ? `
+        <label class="field">
+          <span class="lbl">Morning weight (lb)</span>
+          <input type="number" step="0.1" inputmode="decimal" id="f-weight" value="${escapeHtml(r.weight ?? '')}" />
+        </label>
+      ` : ''}
+      <div class="field">
+        <span class="lbl">Symptoms this morning</span>
+        ${renderToggleRow('dizzy', 'Dizzy or lightheaded', asBool(r.dizzy))}
+        ${renderToggleRow('swelling', 'New or worse swelling / water retention', asBool(r.swelling))}
+        ${renderToggleRow('breathing', 'More breathless than usual', asBool(r.breathing))}
+      </div>
+      <label class="field">
+        <span class="lbl">Symptom note (optional)</span>
+        <textarea id="f-note" rows="2">${escapeHtml(r.symptomNote || '')}</textarea>
+      </label>
+      ${c.medsTrackingEnabled ? `
+        <div class="field">
+          ${renderToggleRow('tookMeds', 'Took today\'s medications', asBool(r.tookMeds))}
+        </div>
+      ` : ''}
+    </div>
+    <div class="modal-foot">
+      ${prefill ? `<button class="btn danger" onclick="deleteAndClose('vitals','${prefill.id}')">Delete</button>` : ''}
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="saveVitalsForm('${prefill ? prefill.id : ''}')">Save</button>
+    </div>
+  `;
+  openModal(html);
+}
+
+function saveVitalsForm(existingId) {
+  const c = state.config;
+  const record = {
+    id: existingId || undefined,
+    date: document.getElementById('f-date').value,
+    restingHR: safeNum(document.getElementById('f-hr').value),
+    dizzy: toggleVal('dizzy'),
+    swelling: toggleVal('swelling'),
+    breathing: toggleVal('breathing'),
+    symptomNote: document.getElementById('f-note').value.trim()
+  };
+  if (c.weightTrackingEnabled) {
+    record.weight = safeNum(document.getElementById('f-weight').value);
+  }
+  if (c.medsTrackingEnabled) {
+    record.tookMeds = toggleVal('tookMeds');
+  }
+  if (!existingId) {
+    const existing = state.vitals.find(v => v.date === record.date);
+    if (existing) record.id = existing.id;
+  }
+  upsertEntry('vitals', record);
+  closeModal();
+  flushSync();
+  renderActiveView();
+}
+
+/** ACTIVITY */
+function openActivityForm(prefill) {
+  const r = prefill || { date: todayISO(), category: 'pool', subtypes: [], rounds: 1 };
+  const subs = Array.isArray(r.subtypes) ? r.subtypes : (typeof r.subtypes === 'string' ? safeParseArray(r.subtypes) : []);
+  const html = `
+    <div class="modal-head">
+      <h2>${prefill ? 'Edit' : 'Log'} activity</h2>
+      <button class="icon-btn" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field">
+        <span class="lbl">Date</span>
+        <input type="date" id="f-date" value="${escapeHtml(r.date || todayISO())}" />
+      </label>
+
+      <div class="field">
+        <span class="lbl">What kind?</span>
+        <div class="chips" id="f-cat-chips">
+          ${Object.entries(ACTIVITY_CATEGORIES).map(([k, v]) => `
+            <button type="button" class="chip ${r.category === k ? 'selected' : ''}" data-cat="${k}">${escapeHtml(v.label)}</button>
+          `).join('')}
+        </div>
+      </div>
+
+      <div id="f-subtype-wrap"></div>
+      <div id="f-bouts-wrap"></div>
+    </div>
+    <div class="modal-foot">
+      ${prefill ? `<button class="btn danger" onclick="deleteAndClose('activity','${prefill.id}')">Delete</button>` : ''}
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="saveActivityForm('${prefill ? prefill.id : ''}')">Save</button>
+    </div>
+  `;
+  openModal(html);
+
+  let currentCat = r.category;
+  let currentSubs = subs.slice();
+
+  const renderSubtypeAndBouts = () => {
+    const subWrap = document.getElementById('f-subtype-wrap');
+    const boutsWrap = document.getElementById('f-bouts-wrap');
+    const cat = ACTIVITY_CATEGORIES[currentCat];
+    if (!cat) { subWrap.innerHTML = ''; boutsWrap.innerHTML = ''; return; }
+
+    if (currentCat === 'rest') {
+      subWrap.innerHTML = `<div class="card soft small italic">Planned rest day — nothing else to log here. Save to record it.</div>`;
+      boutsWrap.innerHTML = '';
+      return;
+    }
+    subWrap.innerHTML = `
+      <div class="field">
+        <span class="lbl">What did she do? <span class="small">(pick all that apply)</span></span>
+        <div class="chips" id="f-sub-chips">
+          ${cat.subtypes.map(st => `
+            <button type="button" class="chip ${currentSubs.includes(st) ? 'selected' : ''}" data-sub="${escapeHtml(st)}">${escapeHtml(st)}</button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    document.querySelectorAll('#f-sub-chips .chip').forEach(el => {
+      el.addEventListener('click', () => {
+        const st = el.dataset.sub;
+        if (currentSubs.includes(st)) currentSubs = currentSubs.filter(x => x !== st);
+        else currentSubs.push(st);
+        el.classList.toggle('selected');
+      });
+    });
+
+    boutsWrap.innerHTML = `
+      <div class="field">
+        <span class="lbl">How long?</span>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+          <label><span class="small">Total min</span>
+            <input type="number" inputmode="numeric" id="f-total" value="${escapeHtml(r.totalMinutes ?? '')}" />
+          </label>
+          <label><span class="small">Rounds</span>
+            <input type="number" inputmode="numeric" id="f-rounds" value="${escapeHtml(r.rounds ?? 1)}" min="1" />
+          </label>
+          <label><span class="small">Min / round</span>
+            <input type="number" inputmode="numeric" id="f-mpr" value="${escapeHtml(r.minutesPerRound ?? '')}" />
+          </label>
+        </div>
+        <span class="help">e.g., 3 rounds × 5 min = 15 total. Min/round is what counts as her "continuous" duration on the staircase chart.</span>
+        <label style="margin-top:8px; display:block;"><span class="small">Rest between rounds (min, optional)</span>
+          <input type="number" inputmode="numeric" id="f-rest" value="${escapeHtml(r.restBetweenMin ?? '')}" />
+        </label>
+      </div>
+
+      ${cat.programmed ? `
+      <div class="field">
+        <span class="lbl">Borg effort</span>
+        <div class="borg-grid" id="f-borg-grid">
+          ${BORG_SCALE.map(b => `
+            <div class="borg-row ${b.tier === 'too-hard' ? 'too-hard' : ''} ${Number(r.borg) === b.n ? 'selected' : ''}" data-borg="${b.n}">
+              <div class="num">${b.n}</div>
+              <div class="desc">${escapeHtml(b.desc)}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div class="field">
+        ${renderToggleRow('talkTestOK', 'Could hold a normal conversation throughout', r.talkTestOK !== false)}
+      </div>
+      <div class="field">
+        <span class="lbl">How did the session feel?</span>
+        <div class="feeling-row" id="f-feeling-row">
+          ${[
+            [1, '😞', 'rough'],
+            [2, '🙁', 'tough'],
+            [3, '😐', 'okay'],
+            [4, '🙂', 'good'],
+            [5, '😊', 'great']
+          ].map(([n, e, l]) => `
+            <button type="button" class="feeling-btn ${Number(r.feeling) === n ? 'selected' : ''}" data-feeling="${n}">
+              <span>${e}</span><span class="lbl">${l}</span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+      <div class="field">
+        <span class="lbl">Symptoms during the session</span>
+        ${renderToggleRow('dizzyDuring', 'Dizzy or lightheaded', asBool(r.dizzyDuring))}
+        ${renderToggleRow('swellingDuring', 'Swelling came on / got worse', asBool(r.swellingDuring))}
+        ${renderToggleRow('breathingDuring', 'Hard to catch breath', asBool(r.breathingDuring))}
+        <label class="field" style="margin-top:8px;">
+          <span class="small">Note about symptoms (optional)</span>
+          <textarea id="f-sym-note" rows="2">${escapeHtml(r.symptomNoteDuring || '')}</textarea>
+        </label>
+      </div>
+      ` : ''}
+
+      <label class="field">
+        <span class="lbl">Note (optional)</span>
+        <textarea id="f-note" rows="2">${escapeHtml(r.note || '')}</textarea>
+      </label>
+    `;
+    document.querySelectorAll('#f-borg-grid .borg-row').forEach(el => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('#f-borg-grid .borg-row').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+      });
+    });
+    document.querySelectorAll('#f-feeling-row .feeling-btn').forEach(el => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('#f-feeling-row .feeling-btn').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+      });
+    });
+    const total = document.getElementById('f-total');
+    const rounds = document.getElementById('f-rounds');
+    const mpr = document.getElementById('f-mpr');
+    if (total && rounds && mpr) {
+      const recompute = (src) => {
+        const t = safeNum(total.value), rv = safeNum(rounds.value), m = safeNum(mpr.value);
+        if (src === 'total' && rv && !m) mpr.value = Math.round(t / rv);
+        else if (src === 'mpr' && rv && !t) total.value = Math.round(m * rv);
+        else if (src === 'rounds' && t && !m) mpr.value = Math.round(t / rv);
+      };
+      total.addEventListener('change', () => recompute('total'));
+      mpr.addEventListener('change', () => recompute('mpr'));
+      rounds.addEventListener('change', () => recompute('rounds'));
+    }
+  };
+
+  document.querySelectorAll('#f-cat-chips .chip').forEach(el => {
+    el.addEventListener('click', () => {
+      currentCat = el.dataset.cat;
+      currentSubs = [];
+      document.querySelectorAll('#f-cat-chips .chip').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+      renderSubtypeAndBouts();
+    });
+  });
+  renderSubtypeAndBouts();
+
+  window.__activeFormCat = () => currentCat;
+  window.__activeFormSubs = () => currentSubs.slice();
+}
+
+function saveActivityForm(existingId) {
+  const cat = window.__activeFormCat();
+  const subs = window.__activeFormSubs();
+  const catDef = ACTIVITY_CATEGORIES[cat];
+  const isRest = cat === 'rest';
+  const total = isRest ? 0 : (safeNum((document.getElementById('f-total')||{}).value, 0) || 0);
+  const rounds = isRest ? 0 : (safeNum((document.getElementById('f-rounds')||{}).value, 1) || 1);
+  const mpr = isRest ? 0 : (safeNum((document.getElementById('f-mpr')||{}).value, total) || total);
+  const borgEl = document.querySelector('#f-borg-grid .borg-row.selected');
+  const feelingEl = document.querySelector('#f-feeling-row .feeling-btn.selected');
+  const record = {
+    id: existingId || undefined,
+    date: document.getElementById('f-date').value,
+    category: cat,
+    subtypes: subs,
+    totalMinutes: total,
+    rounds: rounds,
+    minutesPerRound: mpr,
+    restBetweenMin: isRest ? null : safeNum((document.getElementById('f-rest')||{}).value),
+    borg: borgEl ? Number(borgEl.dataset.borg) : null,
+    talkTestOK: catDef.programmed ? toggleVal('talkTestOK') : null,
+    feeling: feelingEl ? Number(feelingEl.dataset.feeling) : null,
+    dizzyDuring: catDef.programmed ? toggleVal('dizzyDuring') : false,
+    swellingDuring: catDef.programmed ? toggleVal('swellingDuring') : false,
+    breathingDuring: catDef.programmed ? toggleVal('breathingDuring') : false,
+    symptomNoteDuring: catDef.programmed ? ((document.getElementById('f-sym-note')||{}).value || '').trim() : '',
+    note: ((document.getElementById('f-note')||{}).value || '').trim(),
+    isProgrammed: catDef.programmed
+  };
+  if (isRest) {
+    const list = state.config.restDays || [];
+    if (!list.includes(record.date)) setConfig({ restDays: [...list, record.date] });
+  }
+  upsertEntry('activity', record);
+  closeModal();
+  flushSync();
+  renderActiveView();
+}
+
+/** EKG */
+function openEkgForm(prefill) {
+  const now = new Date();
+  const localIso = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  const r = prefill || { dateTime: localIso };
+  const html = `
+    <div class="modal-head">
+      <h2>${prefill ? 'Edit' : 'Log'} EKG</h2>
+      <button class="icon-btn" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field">
+        <span class="lbl">When</span>
+        <input type="datetime-local" id="f-dt" value="${escapeHtml((r.dateTime || localIso).slice(0,16))}" />
+      </label>
+      <label class="field">
+        <span class="lbl">Heart rate (bpm)</span>
+        <input type="number" inputmode="numeric" id="f-rate" value="${escapeHtml(r.rate ?? '')}" />
+      </label>
+      <div class="field">
+        <span class="lbl">Rhythm label (from device)</span>
+        <div class="chips" id="f-rhythm-chips">
+          ${RHYTHM_LABELS.map(rl => `
+            <button type="button" class="chip ${r.rhythm === rl ? 'selected' : ''}" data-rhythm="${rl}">${rl}</button>
+          `).join('')}
+        </div>
+      </div>
+      <div class="field">
+        ${renderToggleRow('symptomatic', 'She felt off when this was taken', asBool(r.symptomatic))}
+      </div>
+      <label class="field">
+        <span class="lbl">Note (optional)</span>
+        <textarea id="f-note" rows="2">${escapeHtml(r.note || '')}</textarea>
+      </label>
+      <div class="card soft small italic">
+        Tip: save tracings from the device app the usual way, then send them on to her cardiologist. This log is for the headline numbers.
+      </div>
+    </div>
+    <div class="modal-foot">
+      ${prefill ? `<button class="btn danger" onclick="deleteAndClose('ekg','${prefill.id}')">Delete</button>` : ''}
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="saveEkgForm('${prefill ? prefill.id : ''}')">Save</button>
+    </div>
+  `;
+  openModal(html);
+  document.querySelectorAll('#f-rhythm-chips .chip').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('#f-rhythm-chips .chip').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+    });
+  });
+}
+
+function saveEkgForm(existingId) {
+  const sel = document.querySelector('#f-rhythm-chips .chip.selected');
+  const record = {
+    id: existingId || undefined,
+    dateTime: document.getElementById('f-dt').value + ':00',
+    rate: safeNum(document.getElementById('f-rate').value),
+    rhythm: sel ? sel.dataset.rhythm : 'unclassified',
+    symptomatic: toggleVal('symptomatic'),
+    note: document.getElementById('f-note').value.trim()
+  };
+  upsertEntry('ekg', record);
+  closeModal();
+  flushSync();
+  renderActiveView();
+}
+
+/** BLOOD SUGAR */
+function openBloodSugarForm(prefill) {
+  const now = new Date();
+  const localIso = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  const r = prefill || { dateTime: localIso, context: 'pre-meal' };
+  const html = `
+    <div class="modal-head">
+      <h2>${prefill ? 'Edit' : 'Log'} blood sugar</h2>
+      <button class="icon-btn" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field">
+        <span class="lbl">When</span>
+        <input type="datetime-local" id="f-dt" value="${escapeHtml((r.dateTime || localIso).slice(0,16))}" />
+      </label>
+      <label class="field">
+        <span class="lbl">Reading (mg/dL)</span>
+        <input type="number" inputmode="numeric" id="f-val" value="${escapeHtml(r.value ?? '')}" />
+      </label>
+      <div class="field">
+        <span class="lbl">Context</span>
+        <div class="chips" id="f-ctx-chips">
+          ${BS_CONTEXTS.map(c => `
+            <button type="button" class="chip ${r.context === c ? 'selected' : ''}" data-ctx="${c}">${c}</button>
+          `).join('')}
+        </div>
+      </div>
+      <label class="field">
+        <span class="lbl">Note (optional)</span>
+        <textarea id="f-note" rows="2">${escapeHtml(r.note || '')}</textarea>
+      </label>
+    </div>
+    <div class="modal-foot">
+      ${prefill ? `<button class="btn danger" onclick="deleteAndClose('bloodSugar','${prefill.id}')">Delete</button>` : ''}
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="saveBloodSugarForm('${prefill ? prefill.id : ''}')">Save</button>
+    </div>
+  `;
+  openModal(html);
+  document.querySelectorAll('#f-ctx-chips .chip').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('#f-ctx-chips .chip').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+    });
+  });
+}
+
+function saveBloodSugarForm(existingId) {
+  const sel = document.querySelector('#f-ctx-chips .chip.selected');
+  const record = {
+    id: existingId || undefined,
+    dateTime: document.getElementById('f-dt').value + ':00',
+    value: safeNum(document.getElementById('f-val').value),
+    context: sel ? sel.dataset.ctx : 'pre-meal',
+    note: document.getElementById('f-note').value.trim()
+  };
+  upsertEntry('bloodSugar', record);
+  closeModal();
+  flushSync();
+  renderActiveView();
+}
+
+function deleteAndClose(type, id) {
+  if (!confirm('Delete this entry?')) return;
+  deleteEntry(type, id);
+  closeModal();
+  flushSync();
+  renderActiveView();
+}
+
+function renderToggleRow(name, label, checked) {
+  return `
+    <label class="toggle">
+      <span class="lbl">${escapeHtml(label)}</span>
+      <input type="checkbox" data-toggle="${name}" ${checked ? 'checked' : ''} />
+      <span class="switch"></span>
+    </label>
+  `;
+}
+function toggleVal(name) {
+  const el = document.querySelector(`input[data-toggle="${name}"]`);
+  return el ? !!el.checked : false;
+}
+
+/* ─── 6b. Day detail modal ──────────────────────────────────────── */
+
+function openDayDetail(iso) {
+  const e = entriesOnDay(iso);
+  const isRest = (state.config.restDays || []).includes(iso);
+  const allItems = [];
+  e.vitals.forEach(r => allItems.push({ type: 'vitals', record: r }));
+  e.activity.forEach(r => allItems.push({ type: 'activity', record: r }));
+  e.ekg.forEach(r => allItems.push({ type: 'ekg', record: r }));
+  e.bloodSugar.forEach(r => allItems.push({ type: 'bloodSugar', record: r }));
+
+  const html = `
+    <div class="modal-head">
+      <h2>${escapeHtml(fmtDayHeading(iso))}</h2>
+      <button class="icon-btn" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      ${isRest ? `
+        <div class="card soft" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <span>Marked as a planned rest day.</span>
+          <button class="ghost" onclick="unmarkRestDay('${iso}'); closeModal(); openDayDetail('${iso}')">Undo</button>
+        </div>
+      ` : (allItems.length === 0 ? `
+        <div class="card soft small italic">Nothing logged for this day.</div>
+      ` : '')}
+
+      ${allItems.length > 0 ? `
+        <div style="margin-top: 8px;">
+          ${allItems.map(it => {
+            const meta = entryMeta(it.type, it.record);
+            return `
+              <div class="entry-row">
+                <div class="entry-icon">${entryIcon(it.type)}</div>
+                <div class="entry-body">
+                  <div class="entry-title">${escapeHtml(meta.title)}</div>
+                  <div class="entry-meta">${escapeHtml(meta.subtitle)}</div>
+                </div>
+                <button class="btn ghost" onclick='editEntry(${JSON.stringify(it.type)}, ${JSON.stringify(it.record.id)})'>Edit</button>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      ` : ''}
+
+      <h4>Add a new entry on this day</h4>
+      <div class="btn-grid-2">
+        <button class="btn" onclick="addOnDay('${iso}','vitals')">+ Vitals</button>
+        <button class="btn" onclick="addOnDay('${iso}','activity')">+ Activity</button>
+        <button class="btn" onclick="addOnDay('${iso}','ekg')">+ EKG</button>
+        <button class="btn" onclick="addOnDay('${iso}','bloodSugar')">+ Blood sugar</button>
+      </div>
+
+      ${!isRest && e.activity.length === 0 ? `
+        <button class="btn" style="width:100%; margin-top:12px;" onclick="markRestDay('${iso}'); closeModal(); openDayDetail('${iso}')">
+          Mark this day as a planned rest day
+        </button>
+      ` : ''}
+    </div>
+    <div class="modal-foot">
+      <button class="btn primary" onclick="closeModal()">Done</button>
+    </div>
+  `;
+  openModal(html, { full: true });
+}
+
+function editEntry(type, id) {
+  const record = state[type].find(r => r.id === id);
+  if (!record) return;
+  closeModal();
+  openLog(type, record);
+}
+
+function addOnDay(iso, type) {
+  closeModal();
+  if (type === 'vitals' || type === 'activity') openLog(type, { date: iso });
+  else openLog(type, { dateTime: iso + 'T' + (new Date().toTimeString().slice(0,5)) + ':00' });
+}
+
+/* ─── 6c. Stage decision modal ──────────────────────────────────── */
+
+function openStageDecision(weekStartIso) {
+  const stage = STAGES[state.config.currentStage] || STAGES[0];
+  const existing = state.stageDecisions.find(d => d.weekStartDate === weekStartIso);
+  const ticked = existing ? (Array.isArray(existing.criteriaTicked) ? existing.criteriaTicked : safeParseArray(existing.criteriaTicked)) : new Array(stage.advance.length).fill(false);
+  const html = `
+    <div class="modal-head">
+      <h2>Stage decision · week of ${escapeHtml(fmtDate(weekStartIso))}</h2>
+      <button class="icon-btn" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="card soft">
+        <strong>Currently:</strong> Stage ${stage.n} — ${escapeHtml(stage.title)}
+      </div>
+
+      <h4>"Ready to advance" criteria for this stage</h4>
+      <p class="small">She ticks the ones she's actually met this week.</p>
+      <div id="f-criteria">
+        ${stage.advance.map((c, i) => `
+          ${renderToggleRow('cr-' + i, c, ticked[i])}
+        `).join('')}
+      </div>
+
+      <h4>Her choice</h4>
+      <div class="chips" id="f-choice">
+        ${[
+          ['advance','Advance to next stage'],
+          ['hold','Hold (most common)'],
+          ['dropBack','Drop back one stage']
+        ].map(([k, lbl]) => `
+          <button type="button" class="chip ${existing && existing.choice === k ? 'selected' : ''}" data-choice="${k}">${escapeHtml(lbl)}</button>
+        `).join('')}
+      </div>
+
+      <label class="field" style="margin-top:14px;">
+        <span class="lbl">Note (optional — context for the doctor)</span>
+        <textarea id="f-note" rows="2">${escapeHtml(existing ? (existing.note || '') : '')}</textarea>
+      </label>
+
+      <div class="card soft small italic" style="margin-top:14px;">
+        The app records what she chose. It never auto-advances. Confirm progressive exertion with her cardiologist when in doubt.
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="saveStageDecision('${weekStartIso}', '${existing ? existing.id : ''}')">Save decision</button>
+    </div>
+  `;
+  openModal(html, { full: false });
+  document.querySelectorAll('#f-choice .chip').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('#f-choice .chip').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+    });
+  });
+}
+
+function saveStageDecision(weekStartIso, existingId) {
+  const stage = STAGES[state.config.currentStage] || STAGES[0];
+  const ticked = stage.advance.map((_, i) => toggleVal('cr-' + i));
+  const sel = document.querySelector('#f-choice .chip.selected');
+  if (!sel) { alert('Pick advance, hold, or drop back.'); return; }
+  const choice = sel.dataset.choice;
+  const record = {
+    id: existingId || undefined,
+    weekStartDate: weekStartIso,
+    stage: state.config.currentStage,
+    choice,
+    criteriaTicked: ticked,
+    note: document.getElementById('f-note').value.trim()
+  };
+  if (!existingId) {
+    const ex = state.stageDecisions.find(d => d.weekStartDate === weekStartIso);
+    if (ex) record.id = ex.id;
+  }
+  upsertEntry('stageDecisions', record);
+  closeModal();
+  flushSync();
+  renderActiveView();
+}
+</script>
+
+<script>
+/* ─── 7. First-run wizard ───────────────────────────────────────── */
+
+let firstRunStep = 0;
+let firstRunData = { stage: 0, mpr: 5, sheetUrl: '' };
+
+function openFirstRun() {
+  firstRunStep = 0;
+  firstRunData = { stage: state.config.currentStage || 0, mpr: 5, sheetUrl: state.config.sheetUrl || '' };
+  renderFirstRunStep();
+}
+
+function renderFirstRunStep() {
+  const steps = ['welcome', 'stage', 'starting', 'sync', 'done'];
+  const key = steps[firstRunStep];
+  let body = '';
+  if (key === 'welcome') body = `
+    <div class="first-run-step">
+      <h2>Welcome.</h2>
+      <div class="welcome-block">
+        <p style="margin:0 0 8px;">This is her companion for the cardiac-rehab plan. It logs vitals and activity, charts how things are trending, and keeps the safety guidance one tap away.</p>
+        <p style="margin:0;"><strong>Rest days you've planned count as keeping up and are part of the plan.</strong></p>
+      </div>
+      <p class="small">A few short questions and you're set. You can change everything later in Settings.</p>
+    </div>
+  `;
+  if (key === 'stage') body = `
+    <div class="first-run-step">
+      <h2>Which stage is she on?</h2>
+      <p class="small">If she's just starting and you're gathering baseline readings, Stage 0 is the right answer.</p>
+      <select id="fr-stage">
+        ${STAGES.map(s => `<option value="${s.n}" ${firstRunData.stage === s.n ? 'selected' : ''}>Stage ${s.n} — ${escapeHtml(s.title)}</option>`).join('')}
+      </select>
+    </div>
+  `;
+  if (key === 'starting') body = `
+    <div class="first-run-step">
+      <h2>What's a comfortable starting "minutes per round"?</h2>
+      <p class="small">Roughly how many minutes can she walk in the pool comfortably before resting? The plan suggests around 3–5 minutes for many deconditioned people — pick whatever's honest.</p>
+      <input type="number" id="fr-mpr" min="1" max="60" value="${firstRunData.mpr}" />
+      <p class="small">This is just for the suggested-session card and the staircase chart's starting line.</p>
+    </div>
+  `;
+  if (key === 'sync') body = `
+    <div class="first-run-step">
+      <h2>Google Sheet sync (optional, recommended)</h2>
+      <p class="small">If you've already followed SETUP.md, paste the web-app URL here. If not, skip — the app works fully offline and you can paste it later in Settings.</p>
+      <input type="url" id="fr-url" placeholder="https://script.google.com/macros/s/.../exec" value="${escapeHtml(firstRunData.sheetUrl)}" />
+      <div class="btn-row">
+        <button class="btn" onclick="frTestSync()">Test connection</button>
+      </div>
+      <div id="fr-test-result" class="small"></div>
+    </div>
+  `;
+  if (key === 'done') body = `
+    <div class="first-run-step">
+      <h2>All set.</h2>
+      <p>The bottom bar takes her between Today, the Log, Trends, the Guide, and Safety. The gear (top-right) reopens Settings.</p>
+      <p class="small">Things she might do first: log this morning's resting heart rate, then today's pool session.</p>
+    </div>
+  `;
+
+  const html = `
+    <div class="modal-head">
+      <h2 style="font-size:var(--fs-lg);">Setup — ${firstRunStep + 1} / ${steps.length}</h2>
+    </div>
+    <div class="modal-body">${body}</div>
+    <div class="modal-foot">
+      ${firstRunStep > 0 ? `<button class="btn ghost" onclick="frBack()">Back</button>` : ''}
+      <button class="btn primary" onclick="frNext()">${firstRunStep === steps.length - 1 ? 'Done' : 'Continue'}</button>
+    </div>
+  `;
+  openModal(html, { full: true });
+}
+
+function frBack() {
+  collectFirstRunStep();
+  if (firstRunStep > 0) firstRunStep--;
+  renderFirstRunStep();
+}
+function frNext() {
+  const steps = ['welcome', 'stage', 'starting', 'sync', 'done'];
+  collectFirstRunStep();
+  if (firstRunStep < steps.length - 1) {
+    firstRunStep++;
+    renderFirstRunStep();
+  } else {
+    setConfig({
+      currentStage: firstRunData.stage,
+      sheetUrl: firstRunData.sheetUrl,
+      firstRunComplete: true
+    });
+    closeModal();
+    if (firstRunData.sheetUrl) {
+      pullFromSheet().then(() => { renderActiveView(); });
+    } else {
+      renderActiveView();
+    }
+  }
+}
+function collectFirstRunStep() {
+  const stageEl = document.getElementById('fr-stage');
+  if (stageEl) firstRunData.stage = Number(stageEl.value);
+  const mprEl = document.getElementById('fr-mpr');
+  if (mprEl) firstRunData.mpr = safeNum(mprEl.value, 5);
+  const urlEl = document.getElementById('fr-url');
+  if (urlEl) firstRunData.sheetUrl = urlEl.value.trim();
+}
+async function frTestSync() {
+  const url = document.getElementById('fr-url').value.trim();
+  const out = document.getElementById('fr-test-result');
+  if (!url) { out.textContent = 'Paste a URL first.'; return; }
+  out.textContent = 'Testing…';
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'ping' })
+    });
+    const data = await res.json();
+    if (data.ok && data.pong) out.innerHTML = '<span style="color:var(--success)">✓ Connected.</span>';
+    else out.innerHTML = '<span style="color:var(--signal-ink)">Unexpected response: ' + escapeHtml(JSON.stringify(data)) + '</span>';
+  } catch (e) {
+    out.innerHTML = '<span style="color:var(--signal-ink)">Could not reach: ' + escapeHtml(e.message) + '</span>';
+  }
+}
+</script>
+
+<script>
+/* ─── 8. Router + tab nav ───────────────────────────────────────── */
+
+let activeView = 'today';
+
+function switchView(name) {
+  activeView = name;
+  document.querySelectorAll('.view').forEach(el => el.classList.toggle('active', el.id === 'view-' + name));
+  document.querySelectorAll('#bottom-tabs button').forEach(el => el.classList.toggle('active', el.dataset.view === name));
+  const titles = { today: 'Today', log: 'Log', trends: 'Trends', guide: 'Guide', safety: 'When to stop', settings: 'Settings', print: 'Weekly summary' };
+  document.getElementById('top-title').textContent = titles[name] || '';
+  renderActiveView();
+  window.scrollTo({ top: 0 });
+}
+
+function renderActiveView() {
+  if (activeView === 'today')    renderToday();
+  if (activeView === 'log')      renderLog();
+  if (activeView === 'trends')   renderTrends();
+  if (activeView === 'guide')    renderGuide();
+  if (activeView === 'safety')   renderSafety();
+  if (activeView === 'settings') renderSettings();
+}
+
+/* ─── 9. Init ───────────────────────────────────────────────────── */
+
+function init() {
+  loadState();
+  applyAppearance();
+
+  document.querySelectorAll('#bottom-tabs button').forEach(b => {
+    b.addEventListener('click', () => switchView(b.dataset.view));
+  });
+  document.getElementById('open-settings').addEventListener('click', () => switchView('settings'));
+
+  window.addEventListener('scroll', () => {
+    const tb = document.getElementById('top-bar');
+    tb.classList.toggle('scrolled', window.scrollY > 4);
+  });
+
+  updateSyncIndicator(state.config.sheetUrl ? 'syncing' : 'offline');
+  if (state.config.sheetUrl) {
+    flushSync();
+    pullFromSheet().then(() => renderActiveView());
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.config.sheetUrl) flushSync();
+  });
+
+  if (!state.config.firstRunComplete) {
+    openFirstRun();
+  }
+
+  renderActiveView();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
 </body>
 </html>
