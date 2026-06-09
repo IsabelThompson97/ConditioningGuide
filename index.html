@@ -1490,84 +1490,83 @@ function todaysSuggestion() {
   return { stage, planText, dow };
 }
 
-/** Plan-derived gentle reminders. Each returns {level:'reminder', msg}
- *  or null. Never alarms. */
+/** Plan-derived home-screen reminders. Returns [] by design — every flag
+ *  (HR out-of-range, weight gain, BS out-of-range) is now shown inline on
+ *  the specific entry that triggered it (see entryMeta + the per-type
+ *  range helpers below). The home screen stays calm; nothing is
+ *  calculated against empty fields. */
 function checkPlanReminders() {
-  const reminders = [];
-  const today = todayISO();
+  return [];
+}
+
+/** Look up the configured HR floor/ceiling. Returns null when nothing
+ *  meaningful is set. Treats 0 as "not set" so any garbage values left
+ *  by the earlier blank-save bug don't trigger anything. */
+function hrRange() {
+  const r = (state.config && state.config.doctorRanges) || {};
+  const floor   = (r.hrFloor   == null || r.hrFloor   === 0) ? null : safeNum(r.hrFloor);
+  const ceiling = (r.hrCeiling == null || r.hrCeiling === 0) ? null : safeNum(r.hrCeiling);
+  if (floor === null && ceiling === null) return null;
+  return { floor, ceiling };
+}
+
+/** Was this vitals entry's weight a "flagged" gain against the previous
+ *  entry (day-over-day) or against an entry from ~7 days earlier? Returns
+ *  a short label string or null. Only fires when weight tracking is on
+ *  AND a threshold is set (>0). Day-flag wins over week-flag if both. */
+function weightFlagForVitals(r) {
+  if (!state.config.weightTrackingEnabled) return null;
+  if (r.weight == null || r.weight === '') return null;
+  const myW = safeNum(r.weight);
+  if (myW === null || !r.date) return null;
   const th = thresholds();
-  // Weight-gain check (only if user has enabled weight tracking AND set a baseline).
-  // Settings labels these thresholds "fluctuation" but the math is gain-only —
-  // a sudden drop is not a check-in trigger in the plan.
-  if (state.config.weightTrackingEnabled && state.config.weightBaselineLb) {
-    const weights = state.vitals
-      .filter(v => v.weight !== null && v.weight !== undefined && v.weight !== '')
-      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-    if (weights.length) {
-      const last = weights[weights.length - 1];
-      const lastW = safeNum(last.weight);
-      if (lastW !== null) {
-        // Day-over-day jump
-        const prior = weights[weights.length - 2];
-        if (prior && safeNum(prior.weight) !== null) {
-          const diff = lastW - safeNum(prior.weight);
-          if (diff >= th.weightGainPerDayLb) {
-            reminders.push({
-              msg: `Morning weight is ${diff.toFixed(1)} lb up from yesterday. The plan lists this as a check-in sign — consider contacting your doctor.`
-            });
-          }
-        }
-        // Week-over-week vs baseline
-        const weekAgoCut = addDays(today, -7);
-        const old = weights.find(w => w.date >= weekAgoCut);
-        if (old && safeNum(old.weight) !== null) {
-          const diff = lastW - safeNum(old.weight);
-          if (diff >= th.weightGainPerWeekLb) {
-            reminders.push({
-              msg: `Morning weight is ${diff.toFixed(1)} lb up over about a week. The plan lists this as a check-in sign — consider contacting your doctor.`
-            });
-          }
-        }
+  const dayTh  = (th.weightGainPerDayLb  > 0) ? th.weightGainPerDayLb  : null;
+  const weekTh = (th.weightGainPerWeekLb > 0) ? th.weightGainPerWeekLb : null;
+  if (dayTh === null && weekTh === null) return null;
+
+  const priorWeights = state.vitals
+    .filter(v => v.id !== r.id && v.weight != null && v.weight !== '' && v.date && v.date < r.date)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  if (priorWeights.length === 0) return null;
+
+  // Day-over-day → compare to the most recent prior entry
+  if (dayTh !== null) {
+    const prior = priorWeights[priorWeights.length - 1];
+    const priorW = safeNum(prior.weight);
+    if (priorW !== null) {
+      const diff = myW - priorW;
+      if (diff >= dayTh) return `↑ ${diff.toFixed(1)} lb day-over-day`;
+    }
+  }
+  // Week-over-week → oldest entry within the last 7 days from this entry
+  if (weekTh !== null) {
+    const weekAgoCut = addDays(r.date, -7);
+    const old = priorWeights.find(w => w.date >= weekAgoCut);
+    if (old) {
+      const oldW = safeNum(old.weight);
+      if (oldW !== null) {
+        const diff = myW - oldW;
+        if (diff >= weekTh) return `↑ ${diff.toFixed(1)} lb this week`;
       }
     }
   }
-  // Doctor-range reminders (only if she's entered the range)
-  const r = state.config.doctorRanges || {};
-  const lastVitals = state.vitals.slice().sort((a,b) => (b.date||'').localeCompare(a.date||''))[0];
-  if (lastVitals && (r.hrFloor || r.hrCeiling)) {
-    const hr = safeNum(lastVitals.restingHR);
-    if (hr !== null) {
-      if (r.hrFloor && hr < r.hrFloor) {
-        reminders.push({ msg: `Resting HR (${hr}) is below the floor you entered (${r.hrFloor}).` });
-      }
-      if (r.hrCeiling && hr > r.hrCeiling) {
-        reminders.push({ msg: `Resting HR (${hr}) is above the ceiling you entered (${r.hrCeiling}).` });
-      }
-    }
-  }
-  // Blood-sugar range reminders — most recent reading per context, only
-  // flag if a low/high is set AND the value is outside it. No nag per
-  // entry; this runs on Today render and only surfaces when notable.
-  const bsCtxMap = {
-    'fasting':   r.bsFasting,
-    'post-meal': r.bsPostMeal,
-    'bedtime':   r.bsBedtime
-  };
-  Object.entries(bsCtxMap).forEach(([ctx, range]) => {
-    if (!range || (range.low == null && range.high == null)) return;
-    const latest = state.bloodSugar
-      .filter(b => b.context === ctx && b.value != null && b.value !== '')
-      .sort((a, b) => (b.dateTime || '').localeCompare(a.dateTime || ''))[0];
-    if (!latest) return;
-    const v = safeNum(latest.value);
-    if (v === null) return;
-    if (range.low != null && v < range.low) {
-      reminders.push({ msg: `Last ${ctx} blood sugar (${v}) is below the floor you entered (${range.low}).` });
-    } else if (range.high != null && v > range.high) {
-      reminders.push({ msg: `Last ${ctx} blood sugar (${v}) is above the ceiling you entered (${range.high}).` });
-    }
-  });
-  return reminders;
+  return null;
+}
+
+/** Look up the configured low/high range for a BS context. Returns null
+ *  when nothing is set OR when only 0s are stored (defensive: earlier
+ *  versions saved 0 instead of null on blank inputs). */
+function bsRangeForContext(ctx) {
+  const r = (state.config && state.config.doctorRanges) || {};
+  const key = ctx === 'fasting' ? 'bsFasting'
+            : ctx === 'post-meal' ? 'bsPostMeal'
+            : ctx === 'bedtime' ? 'bsBedtime'
+            : null;
+  if (!key || !r[key]) return null;
+  const low  = (r[key].low  == null || r[key].low  === 0) ? null : safeNum(r[key].low);
+  const high = (r[key].high == null || r[key].high === 0) ? null : safeNum(r[key].high);
+  if (low === null && high === null) return null;
+  return { low, high };
 }
 
 /* ─── 5a. Today view ────────────────────────────────────────────── */
@@ -1754,8 +1753,21 @@ function entryIcon(type) {
 function entryMeta(type, r) {
   if (type === 'vitals') {
     const bits = [];
-    if (r.restingHR) bits.push(`HR ${r.restingHR}`);
-    if (r.weight && state.config.weightTrackingEnabled) bits.push(`${r.weight} lb`);
+    if (r.restingHR) {
+      // Inline HR out-of-range marker. Empty range fields stay quiet.
+      const range = hrRange();
+      const hr = safeNum(r.restingHR);
+      let mark = '';
+      if (range && hr !== null) {
+        if (range.floor   != null && hr < range.floor)   mark = ' (below range)';
+        if (range.ceiling != null && hr > range.ceiling) mark = ' (above range)';
+      }
+      bits.push(`HR ${r.restingHR}${mark}`);
+    }
+    if (r.weight && state.config.weightTrackingEnabled) {
+      const flag = weightFlagForVitals(r);
+      bits.push(`${r.weight} lb${flag ? ' (' + flag + ')' : ''}`);
+    }
     const sx = [];
     if (asBool(r.dizzy)) sx.push('dizzy');
     if (asBool(r.swelling)) sx.push('swelling');
@@ -1784,8 +1796,17 @@ function entryMeta(type, r) {
     };
   }
   if (type === 'bloodSugar') {
+    // Inline out-of-range marker — only present when the user has actually
+    // configured a low/high for this context. Empty fields stay empty.
+    const range = bsRangeForContext(r.context);
+    const v = safeNum(r.value);
+    let marker = '';
+    if (range && v !== null) {
+      if (range.low != null && v < range.low)   marker = ' (below range)';
+      if (range.high != null && v > range.high) marker = ' (above range)';
+    }
     return {
-      title: `Blood sugar — ${r.value}`,
+      title: `Blood sugar — ${r.value}${marker}`,
       subtitle: r.context || '',
       timeStr: `${fmtDate((r.dateTime || '').slice(0,10))} ${fmtTime(r.dateTime)}`
     };
@@ -3159,7 +3180,7 @@ function renderSettings() {
 
     <div class="card">
       <h4 style="margin-top:0;">Your doctor's ranges</h4>
-      <p class="small">All optional. Reminders only fire on fields you've entered, and only when the most recent reading is out of range. Never used as diagnosis.</p>
+      <p class="small">All optional, all fields. HR fires a gentle home-screen reminder when the most recent reading is out of range. Blood sugar just tags the individual entry inline — no banner. Never used as diagnosis.</p>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <label class="field">
           <span class="lbl">HR floor</span>
@@ -3267,8 +3288,17 @@ function renderSettings() {
 
 function saveSettings() {
   const c = state.config;
-  const dayTh = safeNum(document.getElementById('cfg-th-day').value);
-  const weekTh = safeNum(document.getElementById('cfg-th-week').value);
+  // Blank-respecting numeric parse: empty input → null, NOT 0. safeNum
+  // returns 0 for '' because Number('') === 0, which would silently turn
+  // every "no range set" into "ceiling is 0" and flag every reading.
+  const nullableNum = (id) => {
+    const raw = ((document.getElementById(id)||{}).value || '').trim();
+    if (raw === '') return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  };
+  const dayTh = nullableNum('cfg-th-day');
+  const weekTh = nullableNum('cfg-th-week');
   const newCfg = {
     currentStage: Number(document.getElementById('cfg-stage').value),
     weeklyPlan: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].reduce((o, d) => {
@@ -3288,20 +3318,11 @@ function saveSettings() {
     },
     doctorRanges: {
       ...c.doctorRanges,
-      hrFloor: safeNum(document.getElementById('cfg-hr-floor').value),
-      hrCeiling: safeNum(document.getElementById('cfg-hr-ceiling').value),
-      bsFasting: {
-        low:  safeNum(document.getElementById('cfg-bs-fasting-low').value),
-        high: safeNum(document.getElementById('cfg-bs-fasting-high').value)
-      },
-      bsPostMeal: {
-        low:  safeNum(document.getElementById('cfg-bs-postMeal-low').value),
-        high: safeNum(document.getElementById('cfg-bs-postMeal-high').value)
-      },
-      bsBedtime: {
-        low:  safeNum(document.getElementById('cfg-bs-bedtime-low').value),
-        high: safeNum(document.getElementById('cfg-bs-bedtime-high').value)
-      }
+      hrFloor:   nullableNum('cfg-hr-floor'),
+      hrCeiling: nullableNum('cfg-hr-ceiling'),
+      bsFasting:  { low: nullableNum('cfg-bs-fasting-low'),  high: nullableNum('cfg-bs-fasting-high') },
+      bsPostMeal: { low: nullableNum('cfg-bs-postMeal-low'), high: nullableNum('cfg-bs-postMeal-high') },
+      bsBedtime:  { low: nullableNum('cfg-bs-bedtime-low'),  high: nullableNum('cfg-bs-bedtime-high') }
     },
     theme: document.getElementById('cfg-theme').value,
     textSize: document.getElementById('cfg-textsize').value,

@@ -180,20 +180,61 @@ function run() {
   eq('weekSnapshot.hrRange — [min, max]', snap.hrRange, [64, 70]);
   assert('weekSnapshot.anySymptoms — false when none flagged', snap.anySymptoms === false);
 
-  /* ─── checkPlanReminders — weight (gain only) ──────────────────── */
-  const yesterday = app.addDays(today, -1);
+  /* ─── No home-screen reminders — everything is inline now ──────── */
+  reset({
+    config: { ...app.DEFAULT_CONFIG, weightTrackingEnabled: true, weightBaselineLb: 150,
+              doctorRanges: { ...app.DEFAULT_CONFIG.doctorRanges, hrFloor: 55, hrCeiling: 90 } },
+    vitals: [
+      { id: 'v1', date: app.addDays(today, -1), weight: 150, restingHR: 50 },
+      { id: 'v2', date: today, weight: 155, restingHR: 95 }
+    ]
+  });
+  assert('checkPlanReminders is always empty (inline markers replace banners)',
+         app.checkPlanReminders().length === 0,
+         'got: ' + JSON.stringify(app.checkPlanReminders()));
 
+  /* ─── Inline HR marker on vitals entry ─────────────────────────── */
+  reset({
+    config: { ...app.DEFAULT_CONFIG, doctorRanges: { ...app.DEFAULT_CONFIG.doctorRanges, hrFloor: 55, hrCeiling: 90 } }
+  });
+  let metaV = app.entryMeta('vitals', { date: today, restingHR: 50 });
+  assert('HR below floor → vitals subtitle marks "below range"',
+         /HR 50.*below range/.test(metaV.subtitle), 'got: ' + metaV.subtitle);
+
+  metaV = app.entryMeta('vitals', { date: today, restingHR: 95 });
+  assert('HR above ceiling → vitals subtitle marks "above range"',
+         /HR 95.*above range/.test(metaV.subtitle), 'got: ' + metaV.subtitle);
+
+  metaV = app.entryMeta('vitals', { date: today, restingHR: 70 });
+  assert('HR in range → vitals subtitle has no marker',
+         !/range/.test(metaV.subtitle), 'got: ' + metaV.subtitle);
+
+  reset();  // default config — HR range fields blank
+  metaV = app.entryMeta('vitals', { date: today, restingHR: 50 });
+  assert('HR with no range configured → no marker',
+         !/range/.test(metaV.subtitle), 'got: ' + metaV.subtitle);
+
+  reset({
+    config: { ...app.DEFAULT_CONFIG, doctorRanges: { ...app.DEFAULT_CONFIG.doctorRanges, hrFloor: 0, hrCeiling: 0 } }
+  });
+  metaV = app.entryMeta('vitals', { date: today, restingHR: 50 });
+  assert('HR range stored as 0 (from prior bug) → still no marker',
+         !/range/.test(metaV.subtitle), 'got: ' + metaV.subtitle);
+
+  /* ─── Inline weight gain marker on vitals entry ────────────────── */
+  const yesterday = app.addDays(today, -1);
   reset({
     config: { ...app.DEFAULT_CONFIG, weightTrackingEnabled: true, weightBaselineLb: 150 },
     vitals: [
       { id: 'v1', date: yesterday, weight: 150 },
-      { id: 'v2', date: today,     weight: 153 }   // +3 lb day-over-day, > 2.5 threshold
+      { id: 'v2', date: today,     weight: 153 }   // +3 lb, > 2.5 threshold
     ]
   });
-  let r = app.checkPlanReminders();
-  assert('weight: +3 lb day-over-day triggers reminder',
-         r.some(x => x.msg.includes('up from yesterday')),
-         'expected a day-over-day reminder, got ' + JSON.stringify(r));
+  // entryMeta reads state.vitals for the prior-weight lookup. Pass the
+  // record directly — state already holds the fixture set by reset().
+  metaV = app.entryMeta('vitals', { id: 'v2', date: today, weight: 153 });
+  assert('weight: +3 lb day-over-day → vitals subtitle marks the gain',
+         /day-over-day/.test(metaV.subtitle), 'got: ' + metaV.subtitle);
 
   reset({
     config: { ...app.DEFAULT_CONFIG, weightTrackingEnabled: true, weightBaselineLb: 150 },
@@ -202,50 +243,33 @@ function run() {
       { id: 'v2', date: today,     weight: 151 }   // +1 lb, under threshold
     ]
   });
-  r = app.checkPlanReminders();
-  assert('weight: +1 lb day-over-day does NOT trigger reminder',
-         !r.some(x => x.msg.includes('up from yesterday')),
-         'unexpected reminder fired: ' + JSON.stringify(r));
+  metaV = app.entryMeta('vitals', { id: 'v2', date: today, weight: 151 });
+  assert('weight: +1 lb day-over-day → no marker',
+         !/day-over-day/.test(metaV.subtitle), 'got: ' + metaV.subtitle);
 
   reset({
     config: { ...app.DEFAULT_CONFIG, weightTrackingEnabled: true, weightBaselineLb: 150 },
     vitals: [
       { id: 'v1', date: yesterday, weight: 155 },
-      { id: 'v2', date: today,     weight: 150 }   // -5 lb. Gain-only logic — no reminder.
+      { id: 'v2', date: today,     weight: 150 }   // -5 lb. Gain-only logic — no flag.
     ]
   });
-  r = app.checkPlanReminders();
-  assert('weight: 5 lb LOSS does NOT trigger reminder (gain-only math)',
-         !r.some(x => x.msg.includes('up from yesterday')),
-         'a loss should never trigger a gain reminder; got ' + JSON.stringify(r));
-
-  /* ─── checkPlanReminders — HR floor/ceiling ────────────────────── */
-  reset({
-    config: { ...app.DEFAULT_CONFIG, doctorRanges: { ...app.DEFAULT_CONFIG.doctorRanges, hrFloor: 55, hrCeiling: 90 } },
-    vitals: [{ id: 'v1', date: today, restingHR: 50 }]
-  });
-  r = app.checkPlanReminders();
-  assert('HR below floor → reminder',
-         r.some(x => x.msg.includes('below the floor')),
-         JSON.stringify(r));
+  metaV = app.entryMeta('vitals', { id: 'v2', date: today, weight: 150 });
+  assert('weight: 5 lb LOSS → no flag (gain-only logic)',
+         !/day-over-day/.test(metaV.subtitle), 'got: ' + metaV.subtitle);
 
   reset({
-    config: { ...app.DEFAULT_CONFIG, doctorRanges: { ...app.DEFAULT_CONFIG.doctorRanges, hrFloor: 55, hrCeiling: 90 } },
-    vitals: [{ id: 'v1', date: today, restingHR: 95 }]
+    config: { ...app.DEFAULT_CONFIG, weightTrackingEnabled: false },
+    vitals: [
+      { id: 'v1', date: yesterday, weight: 150 },
+      { id: 'v2', date: today,     weight: 158 }   // +8 lb, but tracking off
+    ]
   });
-  r = app.checkPlanReminders();
-  assert('HR above ceiling → reminder',
-         r.some(x => x.msg.includes('above the ceiling')),
-         JSON.stringify(r));
+  metaV = app.entryMeta('vitals', { id: 'v2', date: today, weight: 158 });
+  assert('weight tracking disabled → no marker even for big gain',
+         !/day-over-day/.test(metaV.subtitle), 'got: ' + metaV.subtitle);
 
-  reset({
-    config: { ...app.DEFAULT_CONFIG, doctorRanges: { ...app.DEFAULT_CONFIG.doctorRanges, hrFloor: 55, hrCeiling: 90 } },
-    vitals: [{ id: 'v1', date: today, restingHR: 70 }]
-  });
-  r = app.checkPlanReminders();
-  assert('HR in range → no reminder', r.length === 0, JSON.stringify(r));
-
-  /* ─── checkPlanReminders — blood sugar per context ─────────────── */
+  /* ─── BS never fires home-screen reminders ─────────────────────── */
   reset({
     config: {
       ...app.DEFAULT_CONFIG,
@@ -259,44 +283,11 @@ function run() {
     ]
   });
   r = app.checkPlanReminders();
-  assert('BS fasting above ceiling → reminder',
-         r.some(x => x.msg.includes('fasting blood sugar') && x.msg.includes('above the ceiling')),
-         JSON.stringify(r));
+  assert('BS out-of-range does NOT raise a home-screen reminder',
+         !r.some(x => x.msg.toLowerCase().includes('blood sugar')),
+         'BS should be inline-only now; got ' + JSON.stringify(r));
 
-  reset({
-    config: {
-      ...app.DEFAULT_CONFIG,
-      doctorRanges: {
-        ...app.DEFAULT_CONFIG.doctorRanges,
-        bsPostMeal: { low: 90, high: 160 }
-      }
-    },
-    bloodSugar: [
-      { id: 'b1', dateTime: today + 'T13:00:00', value: 75, context: 'post-meal' }
-    ]
-  });
-  r = app.checkPlanReminders();
-  assert('BS post-meal below floor → reminder',
-         r.some(x => x.msg.includes('post-meal blood sugar') && x.msg.includes('below the floor')),
-         JSON.stringify(r));
-
-  reset({
-    config: {
-      ...app.DEFAULT_CONFIG,
-      doctorRanges: {
-        ...app.DEFAULT_CONFIG.doctorRanges,
-        bsBedtime: { low: 100, high: 140 }
-      }
-    },
-    bloodSugar: [
-      { id: 'b1', dateTime: today + 'T22:00:00', value: 120, context: 'bedtime' }
-    ]
-  });
-  r = app.checkPlanReminders();
-  assert('BS bedtime in range → no reminder', r.length === 0, JSON.stringify(r));
-
-  // Only the most recent reading per context matters — a stale out-of-range
-  // reading should not keep firing once a normal one is logged afterward.
+  /* ─── BS inline marker via entryMeta — now on the title ────────── */
   reset({
     config: {
       ...app.DEFAULT_CONFIG,
@@ -304,15 +295,40 @@ function run() {
         ...app.DEFAULT_CONFIG.doctorRanges,
         bsFasting: { low: 80, high: 120 }
       }
-    },
-    bloodSugar: [
-      { id: 'b1', dateTime: today + 'T06:00:00', value: 145, context: 'fasting' },   // stale high
-      { id: 'b2', dateTime: today + 'T08:00:00', value: 95,  context: 'fasting' }    // recent normal
-    ]
+    }
   });
-  r = app.checkPlanReminders();
-  assert('BS reminder uses most-recent reading per context',
-         r.length === 0, 'stale high should not keep firing; got ' + JSON.stringify(r));
+  let meta = app.entryMeta('bloodSugar', { value: 145, context: 'fasting', dateTime: today + 'T07:00:00' });
+  assert('BS entry above range → title marks "above range"',
+         /above range/.test(meta.title), 'got: ' + meta.title);
+
+  meta = app.entryMeta('bloodSugar', { value: 75, context: 'fasting', dateTime: today + 'T07:00:00' });
+  assert('BS entry below range → title marks "below range"',
+         /below range/.test(meta.title), 'got: ' + meta.title);
+
+  meta = app.entryMeta('bloodSugar', { value: 100, context: 'fasting', dateTime: today + 'T07:00:00' });
+  assert('BS entry in range → title has no marker',
+         !/range/.test(meta.title), 'got: ' + meta.title);
+
+  // Empty range — no marker should appear regardless of value.
+  reset();   // default config has all BS ranges as { low: null, high: null }
+  meta = app.entryMeta('bloodSugar', { value: 145, context: 'fasting', dateTime: today + 'T07:00:00' });
+  assert('BS entry with no range configured → no marker',
+         !/range/.test(meta.title), 'got: ' + meta.title);
+
+  // Defensive: 0s left over from the earlier blank-save bug should be
+  // treated as "unset", not as a real range of zero.
+  reset({
+    config: {
+      ...app.DEFAULT_CONFIG,
+      doctorRanges: {
+        ...app.DEFAULT_CONFIG.doctorRanges,
+        bsFasting: { low: 0, high: 0 }
+      }
+    }
+  });
+  meta = app.entryMeta('bloodSugar', { value: 145, context: 'fasting', dateTime: today + 'T07:00:00' });
+  assert('BS range stored as 0 (from prior bug) → still no marker',
+         !/range/.test(meta.title), 'got: ' + meta.title);
 
   /* ─── doctor notes excluded from collectAllEntries ─────────────── */
   reset({
