@@ -8,7 +8,7 @@
  *
  * Endpoints
  * ─────────
- *   GET  → returns { ok, vitals, activity, ekg, bloodSugar, stageDecisions, doctorNotes, config }
+ *   GET  → returns { ok, vitals, activity, ekg, bloodSugar, symptoms, stageDecisions, doctorNotes, config }
  *   POST → JSON body, action ∈ {save, delete, bulkSave, saveConfig, ping}
  *          POSTs use Content-Type: text/plain to skip the CORS preflight that
  *          Apps Script web apps cannot answer.
@@ -20,6 +20,7 @@ const TABS = {
   activity:       'Activity',
   ekg:            'EKG',
   bloodSugar:     'BloodSugar',
+  symptoms:       'Symptoms',
   stageDecisions: 'StageDecisions',
   doctorNotes:    'DoctorNotes'
 };
@@ -50,6 +51,10 @@ const SEED_HEADERS = {
   bloodSugar: [
     'id', 'dateTime', 'value', 'context',
     'note', 'createdAt', 'updatedAt'
+  ],
+  symptoms: [
+    'id', 'dateTime', 'dizzy', 'breathing', 'chest', 'palpitations',
+    'swelling', 'nausea', 'note', 'ekgId', 'createdAt', 'updatedAt'
   ],
   stageDecisions: [
     'id', 'weekStartDate', 'stage', 'choice', 'criteriaTicked',
@@ -230,6 +235,7 @@ function doGet(e) {
       activity:       readAll_('activity'),
       ekg:            readAll_('ekg'),
       bloodSugar:     readAll_('bloodSugar'),
+      symptoms:       readAll_('symptoms'),
       stageDecisions: readAll_('stageDecisions'),
       doctorNotes:    readAll_('doctorNotes'),
       config:         readConfig_()

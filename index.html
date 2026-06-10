@@ -1396,19 +1396,21 @@ function entriesOnDay(iso) {
     vitals: state.vitals.filter(v => v.date === iso),
     activity: state.activity.filter(a => a.date === iso),
     ekg: state.ekg.filter(e => (e.dateTime || '').slice(0, 10) === iso),
-    bloodSugar: state.bloodSugar.filter(b => (b.dateTime || '').slice(0, 10) === iso)
+    bloodSugar: state.bloodSugar.filter(b => (b.dateTime || '').slice(0, 10) === iso),
+    symptoms: (state.symptoms || []).filter(s => (s.dateTime || '').slice(0, 10) === iso)
   };
 }
 
 /** Day-strip state: programmed | light | rest | empty
- *  A planned rest day always counts as "kept up." */
+ *  Any logged rest day — planned or taken because of symptoms —
+ *  always counts as "kept up." */
 function dayState(iso) {
   if ((state.config.restDays || []).includes(iso)) return 'rest';
   const e = entriesOnDay(iso);
   const hasProgrammed = e.activity.some(a => asBool(a.isProgrammed));
   if (hasProgrammed) return 'programmed';
   const anyEntry = e.activity.length > 0 || e.vitals.length > 0
-    || e.ekg.length > 0 || e.bloodSugar.length > 0;
+    || e.ekg.length > 0 || e.bloodSugar.length > 0 || e.symptoms.length > 0;
   if (anyEntry) return 'light';
   return 'empty';
 }
@@ -1467,6 +1469,7 @@ function weekSnapshot(weekStartIso) {
       if (hr !== null) hrs.push(hr);
       if (asBool(v.dizzy) || asBool(v.swelling) || asBool(v.breathing)) anySymptoms = true;
     });
+    if (e.symptoms.length > 0) anySymptoms = true;
   });
   const typicalBorg = borgs.length
     ? Math.round((borgs.reduce((s, b) => s + b, 0) / borgs.length) * 10) / 10
@@ -1571,6 +1574,14 @@ function bsRangeForContext(ctx) {
 
 /* ─── 5a. Today view ────────────────────────────────────────────── */
 
+/* Session-only UI state: the plan card's detail fold and the streak
+ * card's "what counts" note. Not persisted — both start closed each
+ * visit so the screen opens compact. */
+let planShapeOpen = false;
+let streakNoteOpen = false;
+function togglePlanShape() { planShapeOpen = !planShapeOpen; renderToday(); }
+function toggleStreakNote() { streakNoteOpen = !streakNoteOpen; renderToday(); }
+
 function renderToday() {
   const root = document.getElementById('view-today');
   const today = todayISO();
@@ -1594,50 +1605,48 @@ function renderToday() {
   root.innerHTML = `
     <h2 class="view-title">${greeting}</h2>
 
-    <div class="card streak-card">
-      <div style="display:flex; align-items:baseline; gap:12px;">
-        <div class="number">${streak}</div>
-        <div>
-          <div style="font-weight:500; color: var(--ink);">${streak === 1 ? 'day' : 'days'} in a row</div>
-          <div class="label">Rest days you've planned count as keeping up and are part of the plan.</div>
-        </div>
-      </div>
-    </div>
-
     ${reminders.length ? reminders.map(r => `
       <div class="banner"><strong>Heads up.</strong> ${escapeHtml(r.msg)}</div>
     `).join('') : ''}
 
-    <h3 style="margin-top:24px;">Today's session shape</h3>
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;">
-        <div>
-          <div style="font-weight:500; font-size: var(--fs-lg);">Stage ${stage.n} — ${escapeHtml(stage.title)}</div>
-          <div class="small">${DOW_FULL[dayOfWeek(today)]}: ${escapeHtml(planText)}</div>
+    <h3>Today's session shape</h3>
+    <div class="card streak-card" style="padding:0; overflow:hidden;">
+      <button onclick="togglePlanShape()" aria-expanded="${planShapeOpen}"
+              style="all:unset; box-sizing:border-box; display:flex; align-items:center; gap:12px; width:100%; padding:16px 18px; cursor:pointer;">
+        <div style="flex:1; min-width:0;">
+          <div class="card-title" style="margin-bottom:6px;">Today's plan · ${DOW_FULL[dayOfWeek(today)]}</div>
+          <div style="font-family:var(--font-serif); font-size:var(--fs-display); font-weight:500; letter-spacing:var(--ls-display); line-height:1.15; color:var(--ink);">${escapeHtml(planText || stage.focus)}</div>
+          <div class="small" style="margin-top:3px;">Stage ${stage.n} · ${escapeHtml(stage.title)}</div>
         </div>
-        <div class="small">Effort target: Borg ${escapeHtml(stage.borg)}</div>
-      </div>
-      <ul class="session-shape">
-        ${stage.shape.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
-      </ul>
-      <div class="small" style="margin-top:10px; font-style:italic;">
-        Full talk test throughout. Stop and rest at any of the signs in <a href="#" onclick="switchView('safety'); return false;">Safety</a>.
-      </div>
+        <span style="flex-shrink:0; font-family:var(--font-mono); font-size:var(--fs-caption); text-transform:uppercase; letter-spacing:var(--ls-caption); color:var(--accent-deep); background:var(--panel); border:1px solid var(--accent); padding:5px 10px; border-radius:999px; white-space:nowrap;">Borg ${escapeHtml(stage.borg)}</span>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+             style="flex-shrink:0; color:var(--ink-2); transition:transform 0.18s;${planShapeOpen ? ' transform:rotate(180deg);' : ''}"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      ${planShapeOpen ? `
+        <div style="padding:0 18px 16px; border-top:1px dashed var(--line-2);">
+          <ul class="session-shape">
+            ${stage.shape.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+          </ul>
+          <div class="small" style="margin-top:10px; font-style:italic;">
+            Full talk test throughout. Stop and rest at any of the signs in <a href="#" onclick="switchView('safety'); return false;">Safety</a>.
+          </div>
+        </div>
+      ` : ''}
     </div>
 
     <h3>Log something</h3>
     <div class="btn-grid-2" style="margin-bottom: 12px;">
       <button class="btn big" onclick="openLog('vitals')">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/><path d="M7.5 12h2l1.5-2.5 2 5 1.5-2.5h2"/></svg>
         Vitals
       </button>
       <button class="btn big" onclick="openLog('activity')">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="5" r="2"/><path d="M9 22l3-6 3 6M6 12l3 2 3-5 4 5 2-2"/></svg>
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="16.5" cy="8" r="1.5"/><path d="M5 12l4.5-2.5 3.5 2.5-2 2.5"/><path d="M3 17c1.5 1 3 1 4.5 0c1.5-1 3-1 4.5 0c1.5 1 3 1 4.5 0c1.5-1 3-1 4.5 0"/></svg>
         Activity
       </button>
-      <button class="btn big" onclick="openLog('ekg')">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h3l2-6 4 12 2-9 2 3h5"/></svg>
-        EKG
+      <button class="btn big" onclick="openLog('symptoms')">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M12 11v4M10 13h4"/></svg>
+        Symptoms
       </button>
       <button class="btn big" onclick="openLog('bloodSugar')">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2c4 6 7 9 7 13a7 7 0 0 1-14 0c0-4 3-7 7-13z"/></svg>
@@ -1646,31 +1655,46 @@ function renderToday() {
     </div>
 
     ${todayState === 'rest' ? `
-      <div class="card soft" style="display:flex; align-items:center; gap:10px; justify-content:space-between; margin-bottom:16px;">
-        <span>Today is a planned rest day. Enjoy it.</span>
+      <div class="card soft" style="display:flex; align-items:center; gap:10px; justify-content:space-between; margin-bottom:0;">
+        <span>Today is a rest day — that's part of the plan.</span>
         <button class="ghost" onclick="unmarkRestDay('${today}')">Undo</button>
       </div>
     ` : `
-      <button class="btn" style="width:100%; margin-bottom:16px;" onclick="markRestDay('${today}')">
-        Mark today as a planned rest day
+      <button class="btn" style="width:100%; margin-bottom:0;" onclick="markRestDay('${today}')">
+        Mark today as a rest day
       </button>
     `}
 
     <h3>Goals</h3>
-    ${goal ? `
-      <div class="card soft">
-        <div class="card-title">This week's goal</div>
-        <div style="font-size: var(--fs-lg);">${escapeHtml(goal)}</div>
-        <div class="small" style="margin-top:6px;">
-          So far: ${snap.daysActive} day${snap.daysActive === 1 ? '' : 's'} kept up
-          ${snap.longestContinuous ? ` · longest continuous ${snap.longestContinuous} min` : ''}
+    <div class="card streak-card">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="number">${streak}</div>
+        <div style="flex:1; font-weight:500; color: var(--ink);">${streak === 1 ? 'day' : 'days'} in a row</div>
+        <button class="ghost" onclick="toggleStreakNote()" aria-expanded="${streakNoteOpen}" aria-label="What counts toward the streak and goal"
+                style="border-radius:50%; width:var(--tap); padding:0; flex-shrink:0; font-weight:600;">?</button>
+      </div>
+      ${streakNoteOpen ? `
+        <div class="label" style="margin-top:8px;">
+          Rest days count as keeping up and are part of the plan — whether you planned one or took one because you needed it.
+          "Days kept up" counts days with a programmed session or a rest day. "Longest continuous" is your longest
+          single unbroken stretch of activity in one session this week.
         </div>
+      ` : ''}
+      <div style="border-top:1px dashed var(--line-2); margin-top:14px; padding-top:12px;">
+        ${goal ? `
+          <div class="card-title">This week's goal</div>
+          <div style="font-family:var(--font-serif); font-size:calc(var(--fs-display) - 3px); font-weight:500; letter-spacing:var(--ls-display); line-height:1.25;">${escapeHtml(goal)}</div>
+          <div class="small" style="margin-top:6px;">
+            So far: ${snap.daysActive} day${snap.daysActive === 1 ? '' : 's'} kept up
+            ${snap.longestContinuous ? ` · longest continuous ${snap.longestContinuous} min` : ''}
+          </div>
+        ` : `
+          <div class="small italic">
+            No goal set for this week yet. <a href="#" onclick="switchView('settings'); return false;">Settings → Weekly goal</a> to add one.
+          </div>
+        `}
       </div>
-    ` : `
-      <div class="card soft small italic">
-        No goal set for this week yet. <a href="#" onclick="switchView('settings'); return false;">Settings → Weekly goal</a> to add one.
-      </div>
-    `}
+    </div>
 
     <div class="card">
       <div class="card-title">Last 14 days</div>
@@ -1691,7 +1715,7 @@ function renderToday() {
       <div class="legend">
         <span><span class="swatch" style="background:var(--c-programmed)"></span>Programmed activity</span>
         <span><span class="swatch" style="background:var(--c-light)"></span>Lighter day</span>
-        <span><span class="swatch" style="background:var(--c-rest)"></span>Rest day kept</span>
+        <span><span class="swatch" style="background:var(--c-rest)"></span>Rest day</span>
       </div>
     </div>
 
@@ -1707,8 +1731,22 @@ function renderToday() {
   });
 }
 
+/** Ids of ekg records that were logged inside a vitals or symptom entry.
+ *  Combined lists hide these rows — the parent entry's subtitle already
+ *  shows the reading — but the Log → EKG filter, the charts, and the
+ *  weekly print still see every reading. */
+function linkedEkgIds() {
+  const ids = new Set();
+  state.vitals.forEach(v => { if (v.morningEkgId) ids.add(v.morningEkgId); });
+  (state.symptoms || []).forEach(s => { if (s.ekgId) ids.add(s.ekgId); });
+  return ids;
+}
+
 function renderRecentEntries() {
-  const all = collectAllEntries().slice(0, 8);
+  const linked = linkedEkgIds();
+  const all = collectAllEntries()
+    .filter(it => it.type !== 'ekg' || !linked.has(it.record.id))
+    .slice(0, 8);
   if (all.length === 0) {
     return `<div class="card soft small italic">Nothing logged yet — tap one of the buttons above to begin.</div>`;
   }
@@ -1722,6 +1760,7 @@ function collectAllEntries() {
   state.activity.forEach(a => items.push({ type: 'activity', sortKey: a.date + 'T12:00', record: a }));
   state.ekg.forEach(e => items.push({ type: 'ekg', sortKey: e.dateTime || '', record: e }));
   state.bloodSugar.forEach(b => items.push({ type: 'bloodSugar', sortKey: b.dateTime || '', record: b }));
+  (state.symptoms || []).forEach(s => items.push({ type: 'symptoms', sortKey: s.dateTime || '', record: s }));
   items.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
   return items;
 }
@@ -1732,7 +1771,7 @@ function entryRowHtml(item) {
   const dateIso = (record.date || (record.dateTime || '').slice(0, 10));
   return `
     <div class="entry-row" onclick="openDayDetail('${dateIso}')">
-      <div class="entry-icon">${entryIcon(type)}</div>
+      <div class="entry-icon">${entryIcon(type, record)}</div>
       <div class="entry-body">
         <div class="entry-title">${escapeHtml(meta.title)}</div>
         <div class="entry-meta">${escapeHtml(meta.subtitle)}</div>
@@ -1742,11 +1781,18 @@ function entryRowHtml(item) {
   `;
 }
 
-function entryIcon(type) {
-  if (type === 'vitals')   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>`;
-  if (type === 'activity') return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="2"/><path d="M9 22l3-6 3 6M6 12l3 2 3-5 4 5 2-2"/></svg>`;
-  if (type === 'ekg')      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h3l2-6 4 12 2-9 2 3h5"/></svg>`;
+function entryIcon(type, record) {
+  if (type === 'vitals')   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/><path d="M7.5 12h2l1.5-2.5 2 5 1.5-2.5h2"/></svg>`;
+  if (type === 'activity') {
+    // Pool sessions get the swimmer; everything else keeps the walker.
+    if (record && record.category === 'pool') {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="16.5" cy="8" r="1.5"/><path d="M5 12l4.5-2.5 3.5 2.5-2 2.5"/><path d="M3 17c1.5 1 3 1 4.5 0c1.5-1 3-1 4.5 0c1.5 1 3 1 4.5 0c1.5-1 3-1 4.5 0"/></svg>`;
+    }
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="2"/><path d="M9 22l3-6 3 6M6 12l3 2 3-5 4 5 2-2"/></svg>`;
+  }
+  if (type === 'ekg')      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M6.5 12h2l1.5-2.5 2 5 1.5-2.5h4"/></svg>`;
   if (type === 'bloodSugar') return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2c4 6 7 9 7 13a7 7 0 0 1-14 0c0-4 3-7 7-13z"/></svg>`;
+  if (type === 'symptoms') return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M12 11v4M10 13h4"/></svg>`;
   return '';
 }
 
@@ -1764,6 +1810,12 @@ function entryMeta(type, r) {
       }
       bits.push(`HR ${r.restingHR}${mark}`);
     }
+    if (r.morningEkgId) {
+      const k = state.ekg.find(e => e.id === r.morningEkgId);
+      if (k && (k.rhythm || k.rate)) {
+        bits.push(`EKG ${k.rhythm || ''}${k.rate ? (k.rhythm ? ', ' : '') + k.rate + ' bpm' : ''}`);
+      }
+    }
     if (r.weight && state.config.weightTrackingEnabled) {
       const flag = weightFlagForVitals(r);
       bits.push(`${r.weight} lb${flag ? ' (' + flag + ')' : ''}`);
@@ -1777,7 +1829,7 @@ function entryMeta(type, r) {
   }
   if (type === 'activity') {
     const cat = ACTIVITY_CATEGORIES[r.category] || { label: r.category };
-    if (r.category === 'rest') return { title: 'Planned rest day', subtitle: '', timeStr: fmtDate(r.date) };
+    if (r.category === 'rest') return { title: 'Rest day', subtitle: '', timeStr: fmtDate(r.date) };
     const subs = Array.isArray(r.subtypes) ? r.subtypes : (typeof r.subtypes === 'string' ? safeParseArray(r.subtypes) : []);
     const subStr = subs.join(', ');
     const mins = r.totalMinutes ? `${r.totalMinutes} min` : '';
@@ -1811,6 +1863,21 @@ function entryMeta(type, r) {
       timeStr: `${fmtDate((r.dateTime || '').slice(0,10))} ${fmtTime(r.dateTime)}`
     };
   }
+  if (type === 'symptoms') {
+    const sx = SYMPTOM_FIELDS.filter(([k]) => asBool(r[k]))
+      .map(([k, , short]) => short);
+    const bits = [];
+    if (r.ekgId) {
+      const k = state.ekg.find(e => e.id === r.ekgId);
+      if (k) bits.push(`EKG taken: ${k.rhythm || 'reading'}${k.rate ? ' · ' + k.rate + ' bpm' : ''}`);
+    }
+    if (r.note) bits.push(r.note);
+    return {
+      title: 'Symptoms' + (sx.length ? ' — ' + sx.join(', ') : ''),
+      subtitle: bits.join(' · '),
+      timeStr: `${fmtDate((r.dateTime || '').slice(0,10))} ${fmtTime(r.dateTime)}`
+    };
+  }
   return { title: '', subtitle: '', timeStr: '' };
 }
 
@@ -1838,21 +1905,53 @@ function unmarkRestDay(iso) {
 
 let logFilter = 'all';
 
+const LOG_FILTERS = [
+  ['all', 'All entries'],
+  ['vitals', 'Vitals'],
+  ['activity', 'Activity'],
+  ['symptoms', 'Symptoms'],
+  ['ekg', 'EKG'],
+  ['bloodSugar', 'Blood sugar'],
+  ['doctor', 'Doctor notes']
+];
+
+/* Session-only: whether the Log filter dropdown is open. */
+let logFilterOpen = false;
+function toggleLogFilter() { logFilterOpen = !logFilterOpen; renderLog(); }
+function chooseLogFilter(k) { logFilter = k; logFilterOpen = false; renderLog(); }
+
 function renderLog() {
   const root = document.getElementById('view-log');
 
-  const chipsHtml = `
-    <div class="chips" style="margin-bottom:18px;">
-      ${[
-        ['all', 'All'],
-        ['vitals', 'Vitals'],
-        ['activity', 'Activity'],
-        ['ekg', 'EKG'],
-        ['bloodSugar', 'Blood sugar'],
-        ['doctor', 'Doctor']
-      ].map(([k, lbl]) => `
-        <button class="chip ${logFilter === k ? 'selected' : ''}" onclick="setLogFilter('${k}')">${lbl}</button>
-      `).join('')}
+  const currentLabel = (LOG_FILTERS.find(([k]) => k === logFilter) || LOG_FILTERS[0])[1];
+  const filtering = logFilter !== 'all';
+  // Title row: "Log" on the left, a compact filter chip on the right.
+  // The chip opens a small menu anchored under it.
+  const headerHtml = `
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin:10px 0 22px;">
+      <h2 class="view-title" style="margin:0;">Log</h2>
+      <div style="position:relative; flex-shrink:0;">
+        <button class="chip ${filtering ? 'selected' : ''}" onclick="toggleLogFilter()"
+                aria-expanded="${logFilterOpen}" aria-haspopup="listbox" style="gap:6px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16l-6 7v5l-4 2v-7z"/></svg>
+          ${currentLabel}
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+               style="transition:transform 0.18s;${logFilterOpen ? ' transform:rotate(180deg);' : ''}"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        ${logFilterOpen ? `
+          <div onclick="toggleLogFilter()" style="position:fixed; inset:0; z-index:15;"></div>
+          <div class="card" role="listbox" style="position:absolute; top:calc(100% + 8px); right:0; z-index:20; min-width:200px; padding:6px; margin-bottom:0; box-shadow:var(--shadow-pop);">
+            ${LOG_FILTERS.map(([k, lbl]) => `
+              <button class="ghost" role="option" aria-selected="${logFilter === k}" onclick="chooseLogFilter('${k}')"
+                      style="display:flex; width:100%; justify-content:space-between; align-items:center; gap:10px; text-align:left;
+                             ${logFilter === k ? 'background:var(--accent-soft); color:var(--accent-deep); font-weight:500;' : ''}">
+                <span>${lbl}</span>
+                ${logFilter === k ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4 10-10"/></svg>` : ''}
+              </button>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
     </div>
   `;
 
@@ -1860,8 +1959,7 @@ function renderLog() {
   if (logFilter === 'doctor') {
     const notes = state.doctorNotes.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     root.innerHTML = `
-      <h2 class="view-title">Log</h2>
-      ${chipsHtml}
+      ${headerHtml}
       <p class="small" style="margin-top:-6px; margin-bottom:14px;">
         Questions or notes to bring up at your next appointment. Kept out of your daily logs and trends; included in the printable weekly summary.
       </p>
@@ -1886,7 +1984,10 @@ function renderLog() {
     return;
   }
 
-  const all = collectAllEntries().filter(it => logFilter === 'all' || it.type === logFilter);
+  const linked = linkedEkgIds();
+  const all = collectAllEntries().filter(it => logFilter === 'all'
+    ? (it.type !== 'ekg' || !linked.has(it.record.id))
+    : it.type === logFilter);
 
   // Group by date (YYYY-MM-DD)
   const groups = new Map();
@@ -1898,9 +1999,7 @@ function renderLog() {
   const sortedDays = Array.from(groups.keys()).sort((a, b) => b.localeCompare(a));
 
   root.innerHTML = `
-    <h2 class="view-title">Log</h2>
-
-    ${chipsHtml}
+    ${headerHtml}
 
     ${sortedDays.length === 0 ? `
       <div class="card soft small italic">No entries to show.</div>
@@ -1939,26 +2038,32 @@ function openQuickLogPicker() {
     <div class="modal-body">
       <div class="btn-grid-2" style="margin-bottom: 8px;">
         <button class="btn big" onclick="closeModal(); openLog('vitals')">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/><path d="M7.5 12h2l1.5-2.5 2 5 1.5-2.5h2"/></svg>
           Vitals
         </button>
         <button class="btn big" onclick="closeModal(); openLog('activity')">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="5" r="2"/><path d="M9 22l3-6 3 6M6 12l3 2 3-5 4 5 2-2"/></svg>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="16.5" cy="8" r="1.5"/><path d="M5 12l4.5-2.5 3.5 2.5-2 2.5"/><path d="M3 17c1.5 1 3 1 4.5 0c1.5-1 3-1 4.5 0c1.5 1 3 1 4.5 0c1.5-1 3-1 4.5 0"/></svg>
           Activity
         </button>
-        <button class="btn big" onclick="closeModal(); openLog('ekg')">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h3l2-6 4 12 2-9 2 3h5"/></svg>
-          EKG
+        <button class="btn big" onclick="closeModal(); openLog('symptoms')">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M12 11v4M10 13h4"/></svg>
+          Symptoms
         </button>
         <button class="btn big" onclick="closeModal(); openLog('bloodSugar')">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2c4 6 7 9 7 13a7 7 0 0 1-14 0c0-4 3-7 7-13z"/></svg>
           Blood sugar
         </button>
       </div>
-      <button class="btn" style="width:100%;" onclick="closeModal(); openDoctorNoteForm()">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4M8 12h8M8 16h6"/></svg>
-        Note for doctor
-      </button>
+      <div class="btn-grid-2">
+        <button class="btn" onclick="closeModal(); openLog('ekg')">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M6.5 12h2l1.5-2.5 2 5 1.5-2.5h4"/></svg>
+          EKG
+        </button>
+        <button class="btn" onclick="closeModal(); openDoctorNoteForm()">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4M8 12h8M8 16h6"/></svg>
+          Note for doctor
+        </button>
+      </div>
     </div>
   `;
   openModal(html, { full: false });
@@ -2237,7 +2342,7 @@ function totalActivityMinutesOnDay(iso) {
 function calendarCellTooltip(iso) {
   const e = entriesOnDay(iso);
   const st = dayState(iso);
-  if (st === 'rest') return `${fmtDayHeading(iso)} — planned rest day`;
+  if (st === 'rest') return `${fmtDayHeading(iso)} — rest day`;
   const acts = e.activity.filter(a => a.category !== 'rest');
   if (acts.length === 0) return `${fmtDayHeading(iso)} — no activity`;
   const parts = acts.map(a => {
@@ -3389,7 +3494,7 @@ function downloadJson() {
 function downloadCsv() {
   // One CSV per type. Stagger downloads ~300ms apart so browsers don't
   // treat the rapid succession as a popup-spam pattern and block them.
-  const types = ['vitals','activity','ekg','bloodSugar','stageDecisions','doctorNotes'];
+  const types = ['vitals','activity','ekg','bloodSugar','symptoms','stageDecisions','doctorNotes'];
   types.forEach((type, i) => {
     const rows = state[type];
     if (rows.length === 0) return;
@@ -3690,6 +3795,10 @@ function openPrintView(weekStartIso) {
       if (asBool(a.breathingDuring)) sx.push('breathing');
       if (sx.length) symptomEvents.push({ when: 'Session ' + fmtDate(d), what: sx.join(', '), note: a.symptomNoteDuring });
     });
+    e.symptoms.forEach(s => {
+      const what = SYMPTOM_FIELDS.filter(([k]) => asBool(s[k])).map(([, , short]) => short).join(', ') || 'felt off';
+      symptomEvents.push({ when: fmtDate(d) + ' ' + fmtTime(s.dateTime), what, note: s.note });
+    });
     e.ekg.forEach(k => {
       if (k.rhythm && k.rhythm !== 'normal') {
         symptomEvents.push({ when: 'EKG ' + fmtDate(d) + ' ' + fmtTime(k.dateTime), what: 'rhythm: ' + k.rhythm + (asBool(k.symptomatic) ? ' (symptomatic)' : ''), note: k.note });
@@ -3735,6 +3844,10 @@ function openPrintView(weekStartIso) {
           }
           prog.forEach(a => {
             if (asBool(a.dizzyDuring) || asBool(a.swellingDuring) || asBool(a.breathingDuring)) sx.push('session');
+          });
+          e.symptoms.forEach(s => {
+            const labels = SYMPTOM_FIELDS.filter(([k]) => asBool(s[k])).map(([, , short]) => short);
+            sx.push(labels.length ? labels.join(', ') : 'felt off');
           });
           const isRest = (state.config.restDays || []).includes(d);
           return `<tr>
@@ -4097,7 +4210,7 @@ const ACTIVITY_CATEGORIES = {
     ]
   },
   rest: {
-    label: 'Planned rest day',
+    label: 'Rest day',
     programmed: false,
     subtypes: []
   }
@@ -4105,6 +4218,18 @@ const ACTIVITY_CATEGORIES = {
 
 /* EKG rhythm labels — straight from her home device's labels */
 const RHYTHM_LABELS = ['normal', 'afib', 'bradycardia', 'tachycardia', 'unclassified'];
+
+/* Standalone symptom entry fields — [recordKey, toggle label, short label].
+ * The set mirrors the plan's "stop and rest" signs so a symptom noted at
+ * rest uses the same vocabulary as the safety guidance. */
+const SYMPTOM_FIELDS = [
+  ['dizzy',        'Dizzy or lightheaded',         'lightheaded'],
+  ['breathing',    'More breathless than usual',   'breathless'],
+  ['chest',        'Chest discomfort',             'chest discomfort'],
+  ['palpitations', 'Palpitations / fluttering',    'palpitations'],
+  ['swelling',     'New or worse swelling',        'swelling'],
+  ['nausea',       'Nausea',                       'nausea']
+];
 
 /* Blood sugar contexts */
 const BS_CONTEXTS = ['fasting', 'pre-meal', 'post-meal', 'bedtime'];
@@ -4210,7 +4335,7 @@ const DEFAULT_CONFIG = {
   theme: 'default',       // default | warm | soft | contrast | dark
   textSize: 'normal',     // normal | large | xlarge
   firstRunComplete: false,
-  restDays: [],           // array of YYYY-MM-DD she has marked as planned rest
+  restDays: [],           // array of YYYY-MM-DD logged as rest (planned or symptom-driven)
   sheetUrl: '',
   lastMondayPromptWeek: ''  // ISO Monday of the most recent week we showed the prompt
 };
@@ -4222,6 +4347,7 @@ var state = {
   activity: [],
   ekg: [],
   bloodSugar: [],
+  symptoms: [],      // standalone symptom events (at rest, outside sessions)
   stageDecisions: [],
   doctorNotes: [],   // free-form questions/notes for the cardiologist;
                      // excluded from Today/Log lists + Trends, included in print
@@ -4384,9 +4510,9 @@ async function pullFromSheet() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (!data.ok) throw new Error(data.error);
-    ['vitals','activity','ekg','bloodSugar','stageDecisions','doctorNotes'].forEach(type => {
+    ['vitals','activity','ekg','bloodSugar','symptoms','stageDecisions','doctorNotes'].forEach(type => {
       const remote = data[type] || [];
-      const byId = new Map(state[type].map(r => [r.id, r]));
+      const byId = new Map((state[type] || []).map(r => [r.id, r]));
       remote.forEach(r => { if (r.id && !byId.has(r.id)) byId.set(r.id, r); });
       state[type] = Array.from(byId.values());
     });
@@ -4458,12 +4584,14 @@ function openLog(type, prefill) {
   if (type === 'activity')   return openActivityForm(prefill);
   if (type === 'ekg')        return openEkgForm(prefill);
   if (type === 'bloodSugar') return openBloodSugarForm(prefill);
+  if (type === 'symptoms')   return openSymptomForm(prefill);
 }
 
 /** VITALS */
 function openVitalsForm(prefill) {
   const r = prefill || { date: todayISO() };
   const c = state.config;
+  const linkedEkg = (r.morningEkgId && state.ekg.find(e => e.id === r.morningEkgId)) || null;
   const html = `
     <div class="modal-head">
       <h2>${prefill ? 'Edit' : ''} Morning vitals</h2>
@@ -4478,6 +4606,16 @@ function openVitalsForm(prefill) {
         <span class="lbl">Resting heart rate (bpm)</span>
         <input type="number" inputmode="numeric" id="f-hr" value="${escapeHtml(r.restingHR ?? '')}" placeholder="e.g., 48" />
       </label>
+      <div class="field">
+        <span class="lbl">Morning EKG (optional)</span>
+        <input type="number" inputmode="numeric" id="f-ekg-rate" value="${escapeHtml(linkedEkg ? (linkedEkg.rate ?? '') : '')}" placeholder="bpm from the device" style="margin-bottom:10px;" />
+        <div class="chips" id="f-ekg-rhythm-chips">
+          ${RHYTHM_LABELS.map(rl => `
+            <button type="button" class="chip ${linkedEkg && linkedEkg.rhythm === rl ? 'selected' : ''}" data-rhythm="${rl}">${rl}</button>
+          `).join('')}
+        </div>
+        <span class="help">Leave blank if you didn't take one. Saved to the EKG log too.</span>
+      </div>
       ${c.weightTrackingEnabled ? `
         <label class="field">
           <span class="lbl">Morning weight (lb)</span>
@@ -4507,10 +4645,43 @@ function openVitalsForm(prefill) {
     </div>
   `;
   openModal(html);
+  wireEkgRhythmChips();
+}
+
+/* Single-select rhythm chips that can also be cleared by tapping the
+ * selected one again (so an accidental tap doesn't force an EKG record). */
+function wireEkgRhythmChips() {
+  document.querySelectorAll('#f-ekg-rhythm-chips .chip').forEach(el => {
+    el.addEventListener('click', () => {
+      const was = el.classList.contains('selected');
+      document.querySelectorAll('#f-ekg-rhythm-chips .chip').forEach(x => x.classList.remove('selected'));
+      if (!was) el.classList.add('selected');
+    });
+  });
+}
+
+/* If the open form's optional EKG section was filled in, upsert the
+ * linked ekg record and return its id (or the prior id when editing).
+ * Returns the existing linkedId untouched when the fields are blank. */
+function saveLinkedEkg(linkedId, dateTime, { symptomatic, defaultNote }) {
+  const rate = safeNum(document.getElementById('f-ekg-rate').value);
+  const sel = document.querySelector('#f-ekg-rhythm-chips .chip.selected');
+  if (rate === null && !sel) return linkedId;
+  const prior = linkedId ? state.ekg.find(e => e.id === linkedId) : null;
+  const rec = upsertEntry('ekg', {
+    id: prior ? prior.id : undefined,
+    dateTime: prior ? prior.dateTime : dateTime,
+    rate,
+    rhythm: sel ? sel.dataset.rhythm : (prior ? prior.rhythm : 'unclassified'),
+    symptomatic: prior ? asBool(prior.symptomatic) || !!symptomatic : !!symptomatic,
+    note: prior && prior.note ? prior.note : defaultNote
+  });
+  return rec.id;
 }
 
 function saveVitalsForm(existingId) {
   const c = state.config;
+  const prior = existingId ? state.vitals.find(v => v.id === existingId) : null;
   const record = {
     id: existingId || undefined,
     date: document.getElementById('f-date').value,
@@ -4518,7 +4689,8 @@ function saveVitalsForm(existingId) {
     dizzy: toggleVal('dizzy'),
     swelling: toggleVal('swelling'),
     breathing: toggleVal('breathing'),
-    symptomNote: document.getElementById('f-note').value.trim()
+    symptomNote: document.getElementById('f-note').value.trim(),
+    morningEkgId: prior ? prior.morningEkgId : undefined
   };
   if (c.weightTrackingEnabled) {
     record.weight = safeNum(document.getElementById('f-weight').value);
@@ -4528,8 +4700,20 @@ function saveVitalsForm(existingId) {
   }
   if (!existingId) {
     const existing = state.vitals.find(v => v.date === record.date);
-    if (existing) record.id = existing.id;
+    if (existing) {
+      record.id = existing.id;
+      record.morningEkgId = record.morningEkgId || existing.morningEkgId;
+    }
   }
+  // New morning EKGs get a morning-ish timestamp: "now" if logging today,
+  // otherwise 8am on the entry's date.
+  const now = new Date();
+  const localNow = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
+  const ekgWhen = record.date === todayISO() ? localNow : record.date + 'T08:00:00';
+  record.morningEkgId = saveLinkedEkg(record.morningEkgId, ekgWhen, {
+    symptomatic: false,
+    defaultNote: 'Morning reading (logged with vitals)'
+  });
   upsertEntry('vitals', record);
   closeModal();
   flushSync();
@@ -4581,7 +4765,7 @@ function openActivityForm(prefill) {
     if (!cat) { subWrap.innerHTML = ''; boutsWrap.innerHTML = ''; return; }
 
     if (currentCat === 'rest') {
-      subWrap.innerHTML = `<div class="card soft small italic">Planned rest day — nothing else to log here. Save to record it.</div>`;
+      subWrap.innerHTML = `<div class="card soft small italic">Rest day — nothing else to log here. Save to record it.</div>`;
       boutsWrap.innerHTML = '';
       return;
     }
@@ -4834,6 +5018,77 @@ function saveEkgForm(existingId) {
   renderActiveView();
 }
 
+/** SYMPTOMS — standalone symptom event (at rest, outside a session).
+ *  Optionally records an EKG reading taken at the time; that reading is
+ *  saved as a normal ekg record (marked symptomatic) and linked by id,
+ *  so the EKG chart and weekly print see it like any other reading. */
+function openSymptomForm(prefill) {
+  const now = new Date();
+  const localIso = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  const r = prefill || { dateTime: localIso };
+  const linkedEkg = (r.ekgId && state.ekg.find(e => e.id === r.ekgId)) || null;
+  const html = `
+    <div class="modal-head">
+      <h2>${prefill ? 'Edit' : 'Log'} symptoms</h2>
+      <button class="icon-btn" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field">
+        <span class="lbl">When</span>
+        <input type="datetime-local" id="f-dt" value="${escapeHtml((r.dateTime || localIso).slice(0,16))}" />
+      </label>
+      <div class="field">
+        <span class="lbl">What you felt</span>
+        ${SYMPTOM_FIELDS.map(([k, lbl]) => renderToggleRow(k, lbl, asBool(r[k]))).join('')}
+      </div>
+      <label class="field">
+        <span class="lbl">Note (optional)</span>
+        <textarea id="f-note" rows="2" placeholder="what you were doing, how long it lasted, what helped">${escapeHtml(r.note || '')}</textarea>
+      </label>
+      <div class="field">
+        <span class="lbl">EKG reading (optional, if you took one)</span>
+        <input type="number" inputmode="numeric" id="f-ekg-rate" value="${escapeHtml(linkedEkg ? (linkedEkg.rate ?? '') : '')}" placeholder="bpm from the device" style="margin-bottom:10px;" />
+        <div class="chips" id="f-ekg-rhythm-chips">
+          ${RHYTHM_LABELS.map(rl => `
+            <button type="button" class="chip ${linkedEkg && linkedEkg.rhythm === rl ? 'selected' : ''}" data-rhythm="${rl}">${rl}</button>
+          `).join('')}
+        </div>
+        <span class="help">Saved to the EKG log too, marked as taken while feeling off.</span>
+      </div>
+      <div class="card soft small">
+        If any of these signs are strong or don't pass with rest, follow the steps in
+        <a href="#" onclick="closeModal(); switchView('safety'); return false;">Safety</a>.
+      </div>
+    </div>
+    <div class="modal-foot">
+      ${prefill ? `<button class="btn danger" onclick="deleteAndClose('symptoms','${prefill.id}')">Delete</button>` : ''}
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="saveSymptomForm('${prefill ? prefill.id : ''}')">Save</button>
+    </div>
+  `;
+  openModal(html);
+  wireEkgRhythmChips();
+}
+
+function saveSymptomForm(existingId) {
+  const prior = existingId ? (state.symptoms || []).find(s => s.id === existingId) : null;
+  const record = {
+    id: existingId || undefined,
+    dateTime: document.getElementById('f-dt').value + ':00',
+    note: document.getElementById('f-note').value.trim(),
+    ekgId: prior ? prior.ekgId : undefined
+  };
+  SYMPTOM_FIELDS.forEach(([k]) => { record[k] = toggleVal(k); });
+  record.ekgId = saveLinkedEkg(record.ekgId, record.dateTime, {
+    symptomatic: true,
+    defaultNote: 'Taken with a symptom entry'
+  });
+  upsertEntry('symptoms', record);
+  closeModal();
+  flushSync();
+  renderActiveView();
+}
+
 /** BLOOD SUGAR */
 function openBloodSugarForm(prefill) {
   const now = new Date();
@@ -4928,6 +5183,7 @@ function openDayDetail(iso) {
   e.activity.forEach(r => allItems.push({ type: 'activity', record: r }));
   e.ekg.forEach(r => allItems.push({ type: 'ekg', record: r }));
   e.bloodSugar.forEach(r => allItems.push({ type: 'bloodSugar', record: r }));
+  e.symptoms.forEach(r => allItems.push({ type: 'symptoms', record: r }));
 
   const html = `
     <div class="modal-head">
@@ -4937,7 +5193,7 @@ function openDayDetail(iso) {
     <div class="modal-body">
       ${isRest ? `
         <div class="card soft" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-          <span>Marked as a planned rest day.</span>
+          <span>Marked as a rest day.</span>
           <button class="ghost" onclick="unmarkRestDay('${iso}'); closeModal(); openDayDetail('${iso}')">Undo</button>
         </div>
       ` : (allItems.length === 0 ? `
@@ -4950,7 +5206,7 @@ function openDayDetail(iso) {
             const meta = entryMeta(it.type, it.record);
             return `
               <div class="entry-row">
-                <div class="entry-icon">${entryIcon(it.type)}</div>
+                <div class="entry-icon">${entryIcon(it.type, it.record)}</div>
                 <div class="entry-body">
                   <div class="entry-title">${escapeHtml(meta.title)}</div>
                   <div class="entry-meta">${escapeHtml(meta.subtitle)}</div>
@@ -4966,13 +5222,14 @@ function openDayDetail(iso) {
       <div class="btn-grid-2">
         <button class="btn" onclick="addOnDay('${iso}','vitals')">+ Vitals</button>
         <button class="btn" onclick="addOnDay('${iso}','activity')">+ Activity</button>
+        <button class="btn" onclick="addOnDay('${iso}','symptoms')">+ Symptoms</button>
         <button class="btn" onclick="addOnDay('${iso}','ekg')">+ EKG</button>
         <button class="btn" onclick="addOnDay('${iso}','bloodSugar')">+ Blood sugar</button>
       </div>
 
       ${!isRest && e.activity.length === 0 ? `
         <button class="btn" style="width:100%; margin-top:12px;" onclick="markRestDay('${iso}'); closeModal(); openDayDetail('${iso}')">
-          Mark this day as a planned rest day
+          Mark this day as a rest day
         </button>
       ` : ''}
     </div>
@@ -5211,7 +5468,7 @@ function renderFirstRunStep() {
       <h2>Welcome.</h2>
       <div class="welcome-block">
         <p style="margin:0 0 8px;">This is your companion for the cardiac-rehab plan. It logs your vitals and activity, charts how things are trending, and keeps the safety guidance one tap away.</p>
-        <p style="margin:0;"><strong>Rest days you've planned count as keeping up and are part of the plan.</strong></p>
+        <p style="margin:0;"><strong>Rest days count as keeping up and are part of the plan — whether you planned one or took one because you needed it.</strong></p>
       </div>
       <p class="small">A few short questions and you're set. You can change everything later in Settings.</p>
     </div>
