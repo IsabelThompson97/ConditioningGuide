@@ -779,6 +779,16 @@ input:focus, select:focus, textarea:focus {
 }
 .borg-row.too-hard .num { color: var(--signal); background: var(--signal-bg); }
 .borg-row.too-hard .desc { color: var(--signal-ink); background: var(--signal-bg); }
+/* Target zone (Borg 11–13) — gentle green, the counterpart to the
+   amber too-hard rows. Derived from --success so every theme works. */
+.borg-row.in-range .num {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 12%, var(--panel));
+}
+.borg-row.in-range .desc {
+  color: color-mix(in srgb, var(--success) 72%, var(--ink));
+  background: color-mix(in srgb, var(--success) 12%, var(--panel));
+}
 
 /* Feeling 1-5 (faces) */
 .feeling-row {
@@ -1194,14 +1204,32 @@ input:focus, select:focus, textarea:focus {
 }
 .snap-table td.num { font-variant-numeric: tabular-nums; }
 
-/* ---------- Print-friendly view ---------- */
+/* ---------- Print-friendly view ----------
+   Printing is only ever invoked from the Weekly summary view, so print
+   shows exactly that view as a clean black-on-white document: app chrome
+   hidden, theme variables forced to print-safe values (so dark mode and
+   warm paper don't bleed ink onto the page), document margins. */
 @media print {
-  #top-bar, #bottom-tabs, .no-print, .modal-foot { display: none !important; }
-  body { background: white; color: black; }
-  .card { box-shadow: none; border-color: #ccc; page-break-inside: avoid; }
-  .view { display: block !important; }
+  @page { margin: 16mm; }
+  html {
+    --bg: #fff; --panel: #fff; --panel-2: #fff; --panel-3: #fff;
+    --ink: #000; --ink-2: #1c1c1c; --muted: #555;
+    --line: #bbb; --line-2: #999;
+    --accent: #333; --accent-soft: #fff; --accent-deep: #000;
+    --shadow: none; --shadow-pop: none;
+  }
+  #top-bar, #bottom-tabs, .no-print, .modal-foot, #modal-mount { display: none !important; }
+  .view { display: none !important; }
+  #view-print { display: block !important; }
+  body { background: white !important; color: black; }
+  #app-shell, main { max-width: none; }
   main { padding: 0; }
-  .chart-wrap { height: 180px; }
+  .card { box-shadow: none; border-color: #ccc; page-break-inside: avoid; }
+  h2.view-title { margin-top: 0; }
+  h3 { page-break-after: avoid; margin-top: 22px; }
+  .snap-table tr { page-break-inside: avoid; }
+  .snap-table th { color: #333; }
+  a { color: black; text-decoration: none; }
 }
 
 /* ---------- Misc ---------- */
@@ -1462,12 +1490,12 @@ function weekSnapshot(weekStartIso) {
       totalProgrammed += safeNum(a.totalMinutes, 0) || 0;
       const b = safeNum(a.borg);
       if (b !== null) borgs.push(b);
-      if (asBool(a.dizzyDuring) || asBool(a.swellingDuring) || asBool(a.breathingDuring)) anySymptoms = true;
+      if (ACTIVITY_SYMPTOM_FIELDS.some(([k]) => asBool(a[k]))) anySymptoms = true;
     });
     e.vitals.forEach(v => {
       const hr = safeNum(v.restingHR);
       if (hr !== null) hrs.push(hr);
-      if (asBool(v.dizzy) || asBool(v.swelling) || asBool(v.breathing)) anySymptoms = true;
+      if (SYMPTOM_FIELDS.some(([k]) => asBool(v[k]))) anySymptoms = true;
     });
     if (e.symptoms.length > 0) anySymptoms = true;
   });
@@ -1820,10 +1848,7 @@ function entryMeta(type, r) {
       const flag = weightFlagForVitals(r);
       bits.push(`${r.weight} lb${flag ? ' (' + flag + ')' : ''}`);
     }
-    const sx = [];
-    if (asBool(r.dizzy)) sx.push('dizzy');
-    if (asBool(r.swelling)) sx.push('swelling');
-    if (asBool(r.breathing)) sx.push('breathing');
+    const sx = SYMPTOM_FIELDS.filter(([k]) => asBool(r[k])).map(([, , short]) => short);
     if (sx.length) bits.push(sx.join(', '));
     return { title: 'Morning vitals', subtitle: bits.join(' · '), timeStr: fmtDate(r.date) };
   }
@@ -3019,12 +3044,6 @@ function renderWeeklySnapshotPanel() {
       </table>
     </div>
 
-    <!-- ───── Export / share ───── -->
-    <div class="card no-print">
-      <div class="card-title">Send a snapshot</div>
-      <p class="small">A printable weekly summary suitable for sending to your cardiologist.</p>
-      <button class="btn" onclick="openPrintView('${thisMon}')">Open weekly summary</button>
-    </div>
   `;
 }
 
@@ -3782,18 +3801,12 @@ function openPrintView(weekStartIso) {
   days.forEach(d => {
     const e = entriesOnDay(d);
     e.vitals.forEach(v => {
-      const sx = [];
-      if (asBool(v.dizzy)) sx.push('dizzy');
-      if (asBool(v.swelling)) sx.push('swelling');
-      if (asBool(v.breathing)) sx.push('breathing');
+      const sx = SYMPTOM_FIELDS.filter(([k]) => asBool(v[k])).map(([, , short]) => short);
       if (sx.length) symptomEvents.push({ when: 'AM ' + fmtDate(d), what: sx.join(', '), note: v.symptomNote });
     });
     e.activity.forEach(a => {
-      const sx = [];
-      if (asBool(a.dizzyDuring)) sx.push('dizzy');
-      if (asBool(a.swellingDuring)) sx.push('swelling');
-      if (asBool(a.breathingDuring)) sx.push('breathing');
-      if (sx.length) symptomEvents.push({ when: 'Session ' + fmtDate(d), what: sx.join(', '), note: a.symptomNoteDuring });
+      const sx = ACTIVITY_SYMPTOM_FIELDS.filter(([k]) => asBool(a[k])).map(([, , short]) => short);
+      if (sx.length) symptomEvents.push({ when: 'Session ' + fmtDate(d), what: sx.join(', '), note: a.symptomNoteDuring || a.note });
     });
     e.symptoms.forEach(s => {
       const what = SYMPTOM_FIELDS.filter(([k]) => asBool(s[k])).map(([, , short]) => short).join(', ') || 'felt off';
@@ -3807,12 +3820,19 @@ function openPrintView(weekStartIso) {
   });
 
   root.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;" class="no-print">
-      <button class="btn ghost" onclick="switchView('trends')">← back</button>
-      <button class="btn primary" onclick="window.print()">Print / Save as PDF</button>
+    <div class="no-print" style="display:flex; justify-content:flex-end; margin-top:4px;">
+      <button class="ghost" onclick="switchView('trends')" aria-label="Close"
+              style="border-radius:50%; width:var(--tap); padding:0; flex-shrink:0; font-size:16px;">✕</button>
     </div>
 
-    <h2 class="view-title">Weekly summary</h2>
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin:0 0 22px;">
+      <h2 class="view-title" style="margin:0;">Weekly summary</h2>
+      <div class="no-print" style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0; padding-top:4px;">
+        <span class="eyebrow">Send a snapshot</span>
+        <button class="btn primary" onclick="window.print()"
+                style="padding:8px 14px; min-height:40px; font-size:var(--fs-body-sm);">Print / Save as PDF</button>
+      </div>
+    </div>
     <p>Week of ${escapeHtml(fmtWeekRange(ws))}</p>
     <p>Stage ${stage.n} — ${escapeHtml(stage.title)} · Effort target Borg ${escapeHtml(stage.borg)}</p>
 
@@ -3837,13 +3857,9 @@ function openPrintView(weekStartIso) {
           const longest = prog.length ? Math.max(...prog.map(a => safeNum(a.minutesPerRound, 0))) : '';
           const tot = prog.reduce((s,a) => s + (safeNum(a.totalMinutes, 0) || 0), 0);
           const sx = [];
-          if (v) {
-            if (asBool(v.dizzy)) sx.push('dizzy');
-            if (asBool(v.swelling)) sx.push('swelling');
-            if (asBool(v.breathing)) sx.push('breathing');
-          }
+          if (v) SYMPTOM_FIELDS.forEach(([k, , short]) => { if (asBool(v[k])) sx.push(short); });
           prog.forEach(a => {
-            if (asBool(a.dizzyDuring) || asBool(a.swellingDuring) || asBool(a.breathingDuring)) sx.push('session');
+            if (ACTIVITY_SYMPTOM_FIELDS.some(([k]) => asBool(a[k]))) sx.push('session');
           });
           e.symptoms.forEach(s => {
             const labels = SYMPTOM_FIELDS.filter(([k]) => asBool(s[k])).map(([, , short]) => short);
@@ -4223,12 +4239,24 @@ const RHYTHM_LABELS = ['normal', 'afib', 'bradycardia', 'tachycardia', 'unclassi
  * The set mirrors the plan's "stop and rest" signs so a symptom noted at
  * rest uses the same vocabulary as the safety guidance. */
 const SYMPTOM_FIELDS = [
-  ['dizzy',        'Dizzy or lightheaded',         'lightheaded'],
+  ['dizzy',        'Dizzy or lightheaded',         'dizzy / lightheaded'],
   ['breathing',    'More breathless than usual',   'breathless'],
   ['chest',        'Chest discomfort',             'chest discomfort'],
   ['palpitations', 'Palpitations / fluttering',    'palpitations'],
   ['swelling',     'New or worse swelling',        'swelling'],
   ['nausea',       'Nausea',                       'nausea']
+];
+
+/* During-session symptom keys on activity records. Same set as
+ * SYMPTOM_FIELDS, with the legacy *During key names kept for the first
+ * three so existing records and sheet columns stay valid. */
+const ACTIVITY_SYMPTOM_FIELDS = [
+  ['dizzyDuring',        'Dizzy or lightheaded',         'dizzy / lightheaded'],
+  ['breathingDuring',    'Hard to catch breath',         'breathless'],
+  ['chestDuring',        'Chest discomfort',             'chest discomfort'],
+  ['palpitationsDuring', 'Palpitations / fluttering',    'palpitations'],
+  ['swellingDuring',     'Swelling came on / got worse', 'swelling'],
+  ['nauseaDuring',       'Nausea',                       'nausea']
 ];
 
 /* Blood sugar contexts */
@@ -4624,9 +4652,7 @@ function openVitalsForm(prefill) {
       ` : ''}
       <div class="field">
         <span class="lbl">Symptoms this morning</span>
-        ${renderToggleRow('dizzy', 'Dizzy or lightheaded', asBool(r.dizzy))}
-        ${renderToggleRow('swelling', 'New or worse swelling / water retention', asBool(r.swelling))}
-        ${renderToggleRow('breathing', 'More breathless than usual', asBool(r.breathing))}
+        ${renderSymptomChips(SYMPTOM_FIELDS, r, 'f-sym')}
       </div>
       <label class="field">
         <span class="lbl">Symptom note (optional)</span>
@@ -4646,6 +4672,7 @@ function openVitalsForm(prefill) {
   `;
   openModal(html);
   wireEkgRhythmChips();
+  wireSymptomChips('f-sym');
 }
 
 /* Single-select rhythm chips that can also be cleared by tapping the
@@ -4664,7 +4691,10 @@ function wireEkgRhythmChips() {
  * linked ekg record and return its id (or the prior id when editing).
  * Returns the existing linkedId untouched when the fields are blank. */
 function saveLinkedEkg(linkedId, dateTime, { symptomatic, defaultNote }) {
-  const rate = safeNum(document.getElementById('f-ekg-rate').value);
+  // Number('') is 0, so an untouched bpm field must be checked as a raw
+  // string — otherwise every save would write a rate-0 EKG record.
+  const rateRaw = (((document.getElementById('f-ekg-rate') || {}).value) || '').trim();
+  const rate = rateRaw === '' ? null : safeNum(rateRaw);
   const sel = document.querySelector('#f-ekg-rhythm-chips .chip.selected');
   if (rate === null && !sel) return linkedId;
   const prior = linkedId ? state.ekg.find(e => e.id === linkedId) : null;
@@ -4686,12 +4716,10 @@ function saveVitalsForm(existingId) {
     id: existingId || undefined,
     date: document.getElementById('f-date').value,
     restingHR: safeNum(document.getElementById('f-hr').value),
-    dizzy: toggleVal('dizzy'),
-    swelling: toggleVal('swelling'),
-    breathing: toggleVal('breathing'),
     symptomNote: document.getElementById('f-note').value.trim(),
     morningEkgId: prior ? prior.morningEkgId : undefined
   };
+  SYMPTOM_FIELDS.forEach(([k]) => { record[k] = symptomChipVal('f-sym', k); });
   if (c.weightTrackingEnabled) {
     record.weight = safeNum(document.getElementById('f-weight').value);
   }
@@ -4721,6 +4749,15 @@ function saveVitalsForm(existingId) {
 }
 
 /** ACTIVITY */
+/* Tint class for a Borg scale entry — green for the 11–13 target zone,
+ * amber for too-hard, neutral otherwise. */
+function borgTierClass(b) {
+  if (!b) return '';
+  if (b.tier === 'too-hard') return ' too-hard';
+  if (b.tier === 'target' || b.tier === 'ceiling') return ' in-range';
+  return '';
+}
+
 function openActivityForm(prefill) {
   const r = prefill || { date: todayISO(), category: 'pool', subtypes: [], rounds: 1 };
   const subs = Array.isArray(r.subtypes) ? r.subtypes : (typeof r.subtypes === 'string' ? safeParseArray(r.subtypes) : []);
@@ -4771,7 +4808,7 @@ function openActivityForm(prefill) {
     }
     subWrap.innerHTML = `
       <div class="field">
-        <span class="lbl">What did you do? <span class="small">(pick all that apply)</span></span>
+        <span class="lbl">What did you do?</span>
         <div class="chips" id="f-sub-chips">
           ${cat.subtypes.map(st => `
             <button type="button" class="chip ${currentSubs.includes(st) ? 'selected' : ''}" data-sub="${escapeHtml(st)}">${escapeHtml(st)}</button>
@@ -4811,17 +4848,37 @@ function openActivityForm(prefill) {
       ${cat.programmed ? `
       <div class="field">
         <span class="lbl">Borg effort</span>
-        <div class="borg-grid" id="f-borg-grid">
-          ${BORG_SCALE.map(b => `
-            <div class="borg-row ${b.tier === 'too-hard' ? 'too-hard' : ''} ${Number(r.borg) === b.n ? 'selected' : ''}" data-borg="${b.n}">
-              <div class="num">${b.n}</div>
-              <div class="desc">${escapeHtml(b.desc)}</div>
+        ${(() => {
+          const cur = BORG_SCALE.find(b => b.n === Number(r.borg));
+          return `
+            <button type="button" id="f-borg-trigger" aria-expanded="false"
+                    style="all:unset; box-sizing:border-box; display:flex; align-items:center; gap:8px; width:100%; cursor:pointer;">
+              <div class="borg-grid" style="flex:1;">
+                <div class="borg-row ${cur ? 'selected' : ''}${borgTierClass(cur)}" id="f-borg-current" style="cursor:pointer;">
+                  <div class="num">${cur ? cur.n : '–'}</div>
+                  <div class="desc">${cur ? escapeHtml(cur.desc) : 'Tap to choose your effort level'}</div>
+                </div>
+              </div>
+              <svg id="f-borg-chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                   style="flex-shrink:0; color:var(--ink-2); transition:transform 0.18s;"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div id="f-borg-grid-wrap" style="display:none; margin-top:8px;">
+              <div class="borg-grid" id="f-borg-grid">
+                ${BORG_SCALE.map(b => `
+                  <div class="borg-row${borgTierClass(b)} ${Number(r.borg) === b.n ? 'selected' : ''}" data-borg="${b.n}">
+                    <div class="num">${b.n}</div>
+                    <div class="desc">${escapeHtml(b.desc)}</div>
+                  </div>
+                `).join('')}
+              </div>
             </div>
-          `).join('')}
-        </div>
-      </div>
-      <div class="field">
-        ${renderToggleRow('talkTestOK', 'Could hold a normal conversation throughout', r.talkTestOK !== false)}
+            <label style="display:flex; align-items:center; gap:8px; margin-top:10px; cursor:pointer;">
+              <input type="checkbox" data-toggle="talkTestOK" ${r.talkTestOK !== false ? 'checked' : ''}
+                     style="width:15px; height:15px; margin:0; flex-shrink:0; accent-color:var(--accent);" />
+              <span class="small">Could hold a normal conversation throughout</span>
+            </label>
+          `;
+        })()}
       </div>
       <label class="field">
         <span class="lbl">Recovery HR (1 min after, optional)</span>
@@ -4846,25 +4903,38 @@ function openActivityForm(prefill) {
       </div>
       <div class="field">
         <span class="lbl">Symptoms during the session</span>
-        ${renderToggleRow('dizzyDuring', 'Dizzy or lightheaded', asBool(r.dizzyDuring))}
-        ${renderToggleRow('swellingDuring', 'Swelling came on / got worse', asBool(r.swellingDuring))}
-        ${renderToggleRow('breathingDuring', 'Hard to catch breath', asBool(r.breathingDuring))}
-        <label class="field" style="margin-top:8px;">
-          <span class="small">Note about symptoms (optional)</span>
-          <textarea id="f-sym-note" rows="2">${escapeHtml(r.symptomNoteDuring || '')}</textarea>
-        </label>
+        ${renderSymptomChips(ACTIVITY_SYMPTOM_FIELDS, r, 'f-symdur')}
       </div>
       ` : ''}
 
       <label class="field">
         <span class="lbl">Note (optional)</span>
-        <textarea id="f-note" rows="2">${escapeHtml(r.note || '')}</textarea>
+        <textarea id="f-note" rows="2" placeholder="how it went, any symptoms, anything worth remembering">${escapeHtml(r.note || r.symptomNoteDuring || '')}</textarea>
       </label>
     `;
+    // Borg picker: collapsed trigger shows the current choice; tapping it
+    // unfolds the full scale, picking a row updates the trigger and folds.
+    const borgTrig = document.getElementById('f-borg-trigger');
+    const borgWrap = document.getElementById('f-borg-grid-wrap');
+    const borgChev = document.getElementById('f-borg-chev');
+    const setBorgOpen = (open) => {
+      borgWrap.style.display = open ? 'block' : 'none';
+      borgTrig.setAttribute('aria-expanded', String(open));
+      borgChev.style.transform = open ? 'rotate(180deg)' : '';
+    };
+    if (borgTrig && borgWrap) {
+      borgTrig.addEventListener('click', () => setBorgOpen(borgWrap.style.display === 'none'));
+    }
     document.querySelectorAll('#f-borg-grid .borg-row').forEach(el => {
       el.addEventListener('click', () => {
         document.querySelectorAll('#f-borg-grid .borg-row').forEach(x => x.classList.remove('selected'));
         el.classList.add('selected');
+        const b = BORG_SCALE.find(x => x.n === Number(el.dataset.borg));
+        const curRow = document.getElementById('f-borg-current');
+        curRow.className = 'borg-row selected' + borgTierClass(b);
+        curRow.querySelector('.num').textContent = b.n;
+        curRow.querySelector('.desc').textContent = b.desc;
+        setBorgOpen(false);
       });
     });
     document.querySelectorAll('#f-feeling-row .feeling-btn').forEach(el => {
@@ -4873,6 +4943,7 @@ function openActivityForm(prefill) {
         el.classList.add('selected');
       });
     });
+    wireSymptomChips('f-symdur');
     const total = document.getElementById('f-total');
     const rounds = document.getElementById('f-rounds');
     const mpr = document.getElementById('f-mpr');
@@ -4932,10 +5003,11 @@ function saveActivityForm(existingId) {
       return Number.isFinite(n) && n > 0 ? n : null;
     })() : null,
     feeling: feelingEl ? Number(feelingEl.dataset.feeling) : null,
-    dizzyDuring: catDef.programmed ? toggleVal('dizzyDuring') : false,
-    swellingDuring: catDef.programmed ? toggleVal('swellingDuring') : false,
-    breathingDuring: catDef.programmed ? toggleVal('breathingDuring') : false,
-    symptomNoteDuring: catDef.programmed ? ((document.getElementById('f-sym-note')||{}).value || '').trim() : '',
+    ...Object.fromEntries(ACTIVITY_SYMPTOM_FIELDS.map(([k]) =>
+      [k, catDef.programmed ? symptomChipVal('f-symdur', k) : false])),
+    // Single note box now; legacy symptomNoteDuring text migrates into
+    // `note` on the next edit (the form prefills from either field).
+    symptomNoteDuring: '',
     note: ((document.getElementById('f-note')||{}).value || '').trim(),
     isProgrammed: catDef.programmed
   };
@@ -5039,7 +5111,7 @@ function openSymptomForm(prefill) {
       </label>
       <div class="field">
         <span class="lbl">What you felt</span>
-        ${SYMPTOM_FIELDS.map(([k, lbl]) => renderToggleRow(k, lbl, asBool(r[k]))).join('')}
+        ${renderSymptomChips(SYMPTOM_FIELDS, r, 'f-sym')}
       </div>
       <label class="field">
         <span class="lbl">Note (optional)</span>
@@ -5068,6 +5140,7 @@ function openSymptomForm(prefill) {
   `;
   openModal(html);
   wireEkgRhythmChips();
+  wireSymptomChips('f-sym');
 }
 
 function saveSymptomForm(existingId) {
@@ -5078,7 +5151,7 @@ function saveSymptomForm(existingId) {
     note: document.getElementById('f-note').value.trim(),
     ekgId: prior ? prior.ekgId : undefined
   };
-  SYMPTOM_FIELDS.forEach(([k]) => { record[k] = toggleVal(k); });
+  SYMPTOM_FIELDS.forEach(([k]) => { record[k] = symptomChipVal('f-sym', k); });
   record.ekgId = saveLinkedEkg(record.ekgId, record.dateTime, {
     symptomatic: true,
     defaultNote: 'Taken with a symptom entry'
@@ -5171,6 +5244,28 @@ function renderToggleRow(name, label, checked) {
 function toggleVal(name) {
   const el = document.querySelector(`input[data-toggle="${name}"]`);
   return el ? !!el.checked : false;
+}
+
+/* Multi-select symptom chips — compact alternative to a stack of toggle
+ * rows. Shared by the vitals, symptom, and activity forms. Each chip
+ * toggles independently; read back with symptomChipVal(). */
+function renderSymptomChips(fields, record, idPrefix) {
+  return `
+    <div class="chips" id="${idPrefix}-chips">
+      ${fields.map(([k, , short]) => `
+        <button type="button" class="chip ${asBool(record[k]) ? 'selected' : ''}" data-sym="${k}">${escapeHtml(short)}</button>
+      `).join('')}
+    </div>
+  `;
+}
+function wireSymptomChips(idPrefix) {
+  document.querySelectorAll(`#${idPrefix}-chips .chip`).forEach(el => {
+    el.addEventListener('click', () => el.classList.toggle('selected'));
+  });
+}
+function symptomChipVal(idPrefix, key) {
+  const el = document.querySelector(`#${idPrefix}-chips .chip[data-sym="${key}"]`);
+  return el ? el.classList.contains('selected') : false;
 }
 
 /* ─── 6b. Day detail modal ──────────────────────────────────────── */
