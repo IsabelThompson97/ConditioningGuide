@@ -1295,25 +1295,25 @@ a { color: var(--accent-deep); }
 
   <!-- ─── Bottom tab nav ──────────────────────────────────────────── -->
   <nav id="bottom-tabs">
-    <button data-view="today" class="active">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
-      Today
-    </button>
-    <button data-view="log">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/></svg>
-      Log
-    </button>
-    <button data-view="trends">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg>
-      Trends
+    <button data-view="safety" class="safety">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L4 6v6c0 5 3.5 9.4 8 10 4.5-.6 8-5 8-10V6z"/></svg>
+      Safety
     </button>
     <button data-view="guide">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12"/><path d="M4 4v16h12a4 4 0 0 0 4-4"/></svg>
       Guide
     </button>
-    <button data-view="safety" class="safety">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L4 6v6c0 5 3.5 9.4 8 10 4.5-.6 8-5 8-10V6z"/></svg>
-      Safety
+    <button data-view="today" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+      Today
+    </button>
+    <button data-view="trends">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg>
+      Trends
+    </button>
+    <button data-view="log">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/></svg>
+      Log
     </button>
   </nav>
 
@@ -1656,7 +1656,7 @@ function renderToday() {
             ${stage.shape.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
           </ul>
           <div class="small" style="margin-top:10px; font-style:italic;">
-            Full talk test throughout. Stop and rest at any of the signs in <a href="#" onclick="switchView('safety'); return false;">Safety</a>.
+            Passing talk test throughout. Stop and rest at any of the signs in <a href="#" onclick="switchView('safety'); return false;">Safety</a>.
           </div>
         </div>
       ` : ''}
@@ -2060,8 +2060,8 @@ function openQuickLogPicker() {
       <h2>Log an entry</h2>
       <button class="icon-btn" onclick="closeModal()" aria-label="Close">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="btn-grid-2" style="margin-bottom: 8px;">
+    <div class="modal-body" style="padding-bottom: calc(36px + var(--safe-bottom));">
+      <div class="btn-grid-2" style="margin-bottom: 12px;">
         <button class="btn big" onclick="closeModal(); openLog('vitals')">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/><path d="M7.5 12h2l1.5-2.5 2 5 1.5-2.5h2"/></svg>
           Vitals
@@ -3196,6 +3196,11 @@ function renderGuide() {
       `).join('')}
     </div>
 
+    <h3>The talk test</h3>
+    <div class="card soft">
+      <p>You should be able to hold a normal conversation the entire time. If you can't finish a sentence, you're working too hard — ease off. This is the master override; it beats every number.</p>
+    </div>
+
     <h3>Borg perceived-effort scale</h3>
     <p class="small">A read of how hard the work <em>feels</em>. Your target lives at 11, occasionally 12–13 later on. Never higher without your doctor specifically okaying it.</p>
     <div class="card">
@@ -3207,11 +3212,6 @@ function renderGuide() {
           </div>
         `).join('')}
       </div>
-    </div>
-
-    <h3>The talk test</h3>
-    <div class="card soft">
-      <p>You should be able to hold a normal conversation the entire time. If you can't finish a sentence, you're working too hard — ease off. This is the master override; it beats every number.</p>
     </div>
 
     <div class="spacer-lg"></div>
@@ -3659,7 +3659,7 @@ function loadDemoData() {
       } else if (isTueThu) {
         push('activity', {
           date, category: 'strength',
-          subtypes: ['Sit-to-stands', 'Heel raises', 'Wall push-ups', 'Standing hip lifts'],
+          subtypes: ['Sit-to-stands', 'Heel raises', 'Wall push-ups', 'Standing leg lifts'],
           totalMinutes: 18, rounds: 2, minutesPerRound: 9,
           borg: 11, talkTestOK: true, feeling: 4,
           isProgrammed: true, note: ''
@@ -3944,7 +3944,7 @@ function renderSafety() {
     </div>
 
     <div class="card soft small italic">
-      Still your doctor's call, not the plan's: any beta-blocker change, and diabetes precautions around exercise (hydration, low blood sugar, foot care near the pool).
+      Your doctor makes the final call on what's safe for you. This is general guidance – your cardiologist may have personalized advice based on your history and current status. When in doubt, err on the side of caution and write a note to ask your doctor at the next appointment. 
     </div>
 
     <h3>References</h3>
@@ -3962,9 +3962,6 @@ function renderSafety() {
           <em>Exercise for Primary and Secondary Prevention of Cardiovascular Disease: JACC Focus Seminar 1/4.</em>
           Journal of the American College of Cardiology. 2022;80(11):1091–1106.
           <a href="https://doi.org/10.1016/j.jacc.2022.07.004" target="_blank" rel="noopener">doi:10.1016/j.jacc.2022.07.004</a>
-        </li>
-        <li>
-          Your personalized <em>Progressive Activity Plan</em> and <em>Activity Workbook &amp; Log</em>, written for your situation in consultation with your care team.
         </li>
       </ol>
       <p class="small italic" style="margin-top:14px;">
@@ -4049,8 +4046,7 @@ const STAGES = [
     shape: [
       '3–5 min warm-up',
       '~15–20 min walking total, broken into short bouts (e.g., 3 × 3–5 min) with rests',
-      '3–5 min cool-down',
-      'Full talk test throughout'
+      '3–5 min cool-down'
     ],
     aquatic: [
       'Chest-deep water walking forward/back',
@@ -4085,19 +4081,18 @@ const STAGES = [
     shape: [
       'Warm-up',
       '~10–15 min continuous walking, ~20–30 min total session',
-      'Cool-down',
-      'Talk test still fully intact'
+      'Cool-down'
     ],
     aquatic: [
       'Continuous water-walking "laps"',
-      'Wider strides',
+      'Side-stepping + marching in shallower water',
       'Gentle leg swings holding the wall'
     ],
     land: [
       '1–2 sets of strength + balance exercises',
-      'Light resistance band rows',
-      'Wall (incline) push-ups',
-      'Standing hip lifts holding a chair'
+      'Seated arm raises + leg extensions',
+      'Sit to stands + heel raises',
+      'Standing leg lifts + balances holding a chair'
     ],
     advance: [
       'The longer session feels light',
@@ -4119,7 +4114,7 @@ const STAGES = [
     ],
     shape: [
       'Warm-up',
-      'Mostly easy walking with a few 1–2 min faster intervals',
+      'Mostly easy walking with a few 1–2 min faster intervals, 30 minute sessions',
       'Return to easy walking between intervals',
       'Cool-down — never to breathlessness'
     ],
@@ -4176,6 +4171,7 @@ const STAGES = [
 /* Warm-up / cool-down menu (every session, both ends) */
 const WARMUP_COOLDOWN = [
   'Marching in place',
+  'Side steps',
   'Gentle arm and leg range-of-motion',
   'Slow easy walking',
   'Finish with slow walking and easy stretches'
@@ -4204,8 +4200,9 @@ const ACTIVITY_CATEGORIES = {
     label: 'Strength (no weights)',
     programmed: true,
     subtypes: [
-      'Sit-to-stands', 'Heel raises', 'Ankle pumps',
-      'Wall push-ups', 'Light band rows', 'Standing hip lifts',
+      'Sit-to-stands', 'Heel raises', 'Ankle pumps', 'Seated arm raises',
+      'Seated leg extensions', 'Standing side leg raise',
+      'Wall push-ups', 'Light band rows',
       'Supported low step-ups', 'Other'
     ]
   },
@@ -4213,7 +4210,7 @@ const ACTIVITY_CATEGORIES = {
     label: 'Balance',
     programmed: true,
     subtypes: [
-      'Supported single-leg stand', 'Longer balance hold',
+      'Supported single-leg stand', 'Heel to toe walk','Longer balance hold',
       'Side-stepping (balance focus)', 'Other'
     ]
   },
@@ -4222,7 +4219,7 @@ const ACTIVITY_CATEGORIES = {
     programmed: false,
     subtypes: [
       'Housework', 'Caring for the cats', 'Errands',
-      'Cooking', 'Gardening', 'Other'
+      'Cooking', 'Other'
     ]
   },
   rest: {
@@ -4306,7 +4303,7 @@ const SAFETY = {
       'Bluish lips',
       'Confusion'
     ],
-    extra: 'If you feel dizzy in the water, get to the shallow end / edge and out (slowly) right away — don’t wait to see if it passes.'
+    extra: 'If you feel dizzy in the water, go to the shallow end / edge and get out (slowly) right away — don’t wait to see if it passes.'
   },
   pool: {
     title: 'Pool, every time',
